@@ -11,18 +11,19 @@ def load_data(data_path="MNIST_data/", one_hot=True):
 # input_size = 784
 # num_classes = 10
 
-layer_type = Enum('layer_type', 'FC CNN LSTM')
-activate_fn_type = Enum('activate_fn_type', 'Sigmoid tanh ReLU')
+# enum parameters
+layer_type = Enum('layer_type', 'FC CNN')
+activate_fn_type = Enum('activate_fn_type', 'No_act Sigmoid tanh ReLU')
 init_fn_type = Enum('init_fn_type', 'No_init Normal Xavier')
+loss_fn_type = Enum('loss_fn_type', 'Cross_Entropy')
 optimizer_type = Enum('optimizer_type', 'SGD Adam RMSProp')
-
 
 class Model:
 
-    def __init__(self, sess, model_params, train_params):
+    def __init__(self, sess, model_params):
         self.sess = sess
         self.model_params = model_params
-        self.train_params = train_params
+
 
     def build(self):
         with tf.variable_scope(self.model_params.name):
@@ -35,7 +36,9 @@ class Model:
             num_layers = self.model_params.num_layers
             for i in range(num_layers):
                 # Activation function
-                if self.model_params.activate_fn[i] == activate_fn_type.Sigmoid.value:
+                if self.model_params.activate_fn[i] == activate_fn_type.No_act.value:
+                    act_fn = None
+                elif self.model_params.activate_fn[i] == activate_fn_type.Sigmoid.value:
                     act_fn = tf.nn.sigmoid
                 elif self.model_params.activate_fn[i] == activate_fn_type.tanh.value:
                     act_fn = tf.nn.tanh
@@ -96,7 +99,7 @@ class Model:
 
                     num_filters = self.model_params.output_size[i]
                     k_size = self.model_params.kernel_size[i]
-                    s_size = self.model_params.stride[i]
+                    s_size = self.model_params.kernel_stride[i]
 
                     out = tf.layers.conv2d(inputs=self.input,
                                            filters=num_filters,
@@ -155,25 +158,29 @@ class Model:
 
         return True
 
-    def set_optimizer(self, optimizer):
+    def set_optimizer(self, lossFn, optimizer, learning_rate):
         # define cost/loss & optimizer
-        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-            logits=self.logits, labels=self.Y))
+        if lossFn == loss_fn_type.Cross_Entropy.value:
+            print("\nLoss function: Cross_Entropy.")
+            self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+                logits=self.logits, labels=self.Y))
 
         if optimizer == optimizer_type.SGD.value:
             print("\nSGD optimizer is selected.")
             self.optimizer = tf.train.GradientDescentOptimizer(
-                learning_rate=self.train_params.learning_rate).minimize(self.cost)
+                learning_rate=learning_rate).minimize(self.cost)
         elif optimizer == optimizer_type.Adam.value:
             print("\nAdam optimizer is selected.")
             self.optimizer = tf.train.AdamOptimizer(
-                learning_rate=self.train_params.learning_rate).minimize(self.cost)
+                learning_rate=learning_rate).minimize(self.cost)
         elif optimizer == optimizer_type.RMSProp.value:
             print("\nRMSProp optimizer is selected.")
             self.optimizer = tf.train.RMSPropOptimizer(
-                learning_rate=self.train_params.learning_rate).minimize(self.cost)
+                learning_rate=learning_rate).minimize(self.cost)
         else:
             pass
+
+
 
     def predict(self, image, training=False):
         image = np.asarray(image, dtype="float32")
@@ -194,7 +201,12 @@ class Model:
         return self.sess.run(self.accuracy,
                              feed_dict={self.X: test_data_set.images, self.Y: test_data_set.labels, self.training: training})
 
-    def train(self, train_data_set, training=True):
+    def train(self, train_data_set, train_params, training=True):
+        self.train_params = train_params
+
+        # optimizer
+        self.set_optimizer(self.train_params.loss_fn, self.train_params.optimizer, self.train_params.learning_rate)
+
         # initialize variables
         self.sess.run(tf.global_variables_initializer())
         print('\nTraining started...')
@@ -202,7 +214,9 @@ class Model:
         # train my model
         num_epochs = self.train_params.training_epochs
         batch_size = self.train_params.batch_size
-        print('\t# of Epochs: %d, Batch size: %d' % (num_epochs, batch_size))
+        learning_rate = self.train_params.learning_rate
+        print('\t# of Epochs: %d, Batch size: %d, Learning rate: %f'
+              % (num_epochs, batch_size, learning_rate))
         for epoch in range(num_epochs):
             avg_cost = 0
             total_batch = int(train_data_set.num_examples / batch_size)
