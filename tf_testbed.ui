@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>790</width>
-    <height>545</height>
+    <width>975</width>
+    <height>594</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,24 +40,548 @@
      </property>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="groupBox_2">
+   <widget class="QGroupBox" name="groupBox_modelBuilder">
     <property name="geometry">
      <rect>
-      <x>430</x>
-      <y>30</y>
-      <width>131</width>
-      <height>231</height>
+      <x>380</x>
+      <y>20</y>
+      <width>581</width>
+      <height>391</height>
      </rect>
     </property>
     <property name="title">
      <string>Model Builder</string>
     </property>
+    <widget class="QWidget" name="verticalLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>19</y>
+       <width>181</width>
+       <height>321</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QScrollArea" name="scrollArea">
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="scrollAreaWidgetContents">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>177</width>
+           <height>317</height>
+          </rect>
+         </property>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_library">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>10</y>
+       <width>161</width>
+       <height>111</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Library</string>
+     </property>
+     <widget class="QSplitter" name="splitter_library">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>141</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QRadioButton" name="radioButton_tensorflow">
+       <property name="text">
+        <string>TensorFlow</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="radioButton_keras">
+       <property name="text">
+        <string>Keras (TF backend)</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="radioButton_pytorch">
+       <property name="text">
+        <string>PyTorch</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_inputOutput">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>10</y>
+       <width>201</width>
+       <height>111</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Input / Output</string>
+     </property>
+     <widget class="QLabel" name="label_numLayers">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>75</y>
+        <width>121</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string># of hidden layers</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_numClasses">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>50</y>
+        <width>42</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+       </font>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_inputSize">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>20</y>
+        <width>42</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+       </font>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_inputSize">
+      <property name="geometry">
+       <rect>
+        <x>13</x>
+        <y>15</y>
+        <width>131</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Input size (1D vector)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_numClasses">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>44</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string># of classes</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_numLayers">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>80</y>
+        <width>41</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_hiddenLayer">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>130</y>
+       <width>371</width>
+       <height>211</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Hidden Layer Parameters</string>
+     </property>
+     <widget class="QSplitter" name="splitter_CNN">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>351</width>
+        <height>42</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>15</number>
+      </property>
+      <widget class="QRadioButton" name="radioButton_CNN">
+       <property name="text">
+        <string>2D Convolution layer</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="QWidget" name="">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QSplitter" name="splitter_CNNLabel">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="handleWidth">
+           <number>14</number>
+          </property>
+          <widget class="QLabel" name="label_kernelSize">
+           <property name="text">
+            <string>Kernel</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_kernelStride">
+           <property name="text">
+            <string>Stride</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+          <widget class="QLabel" name="label_numFilters">
+           <property name="text">
+            <string># of filters</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSplitter" name="splitter_CNNParam">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="handleWidth">
+           <number>15</number>
+          </property>
+          <widget class="QSpinBox" name="spinBox_kernelSize"/>
+          <widget class="QSpinBox" name="spinBox_kernelStride"/>
+          <widget class="QSpinBox" name="spinBox_numFilters"/>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+     <widget class="QSplitter" name="splitter_initFn">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>130</y>
+        <width>351</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>56</number>
+      </property>
+      <widget class="QCheckBox" name="checkBox_initFn">
+       <property name="text">
+        <string>Weight Initializer function</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_initFn"/>
+     </widget>
+     <widget class="QSplitter" name="splitter_maxPooling">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>160</y>
+        <width>191</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>0</number>
+      </property>
+      <widget class="QCheckBox" name="checkBox_maxPooling">
+       <property name="text">
+        <string>Max pooling</string>
+       </property>
+      </widget>
+      <widget class="QSplitter" name="splitter_6">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <widget class="QSplitter" name="splitter_poolLabel">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="handleWidth">
+         <number>5</number>
+        </property>
+        <widget class="QLabel" name="label_poolSize">
+         <property name="text">
+          <string>Kernel</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_poolStride">
+         <property name="text">
+          <string>Stride</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QSplitter" name="splitter_poolParam">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="handleWidth">
+         <number>5</number>
+        </property>
+        <widget class="QSpinBox" name="spinBox_poolSize">
+         <property name="value">
+          <number>2</number>
+         </property>
+        </widget>
+        <widget class="QSpinBox" name="spinBox_poolStride">
+         <property name="value">
+          <number>2</number>
+         </property>
+        </widget>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QSplitter" name="splitter_dropOut">
+      <property name="geometry">
+       <rect>
+        <x>220</x>
+        <y>160</y>
+        <width>141</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>5</number>
+      </property>
+      <widget class="QCheckBox" name="checkBox_dropOut">
+       <property name="text">
+        <string>Dropout</string>
+       </property>
+      </widget>
+      <widget class="QSplitter" name="splitter_keepProb">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <widget class="QLabel" name="label_keepProb">
+        <property name="text">
+         <string>Keep_prob</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_keepProb">
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.700000000000000</double>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QSplitter" name="splitter_actFn">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
+        <width>351</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>0</number>
+      </property>
+      <widget class="QCheckBox" name="checkBox_actFn">
+       <property name="text">
+        <string>Activation function</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_actFn"/>
+     </widget>
+     <widget class="QSplitter" name="splitter_FC">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>351</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QRadioButton" name="radioButton_FC">
+       <property name="text">
+        <string>Fully-connected layer</string>
+       </property>
+      </widget>
+      <widget class="QSplitter" name="splitter">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <widget class="QLabel" name="label_numNeurons">
+        <property name="text">
+         <string># of neurons</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+       <widget class="QSpinBox" name="spinBox_numNeurons">
+        <property name="value">
+         <number>2</number>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <zorder>spinBox_kernelStride</zorder>
+     <zorder>doubleSpinBox_keepProb</zorder>
+     <zorder>comboBox_actFn</zorder>
+     <zorder>spinBox_poolSize</zorder>
+     <zorder>spinBox_kernelSize</zorder>
+     <zorder>comboBox_initFn</zorder>
+     <zorder>spinBox_poolStride</zorder>
+     <zorder>spinBox_kernelStride</zorder>
+     <zorder>doubleSpinBox_keepProb</zorder>
+     <zorder>comboBox_actFn</zorder>
+     <zorder>spinBox_poolSize</zorder>
+     <zorder>spinBox_kernelSize</zorder>
+     <zorder>comboBox_initFn</zorder>
+     <zorder>spinBox_poolStride</zorder>
+     <zorder>checkBox_actFn</zorder>
+     <zorder>checkBox_initFn</zorder>
+     <zorder>checkBox_maxPooling</zorder>
+     <zorder>checkBox_dropOut</zorder>
+     <zorder>spinBox_numFilters</zorder>
+     <zorder>radioButton_FC</zorder>
+     <zorder>radioButton_CNN</zorder>
+     <zorder>label_kernelSize</zorder>
+     <zorder>label_kernelStride</zorder>
+     <zorder>label_numFilters</zorder>
+     <zorder>spinBox_poolSize_2</zorder>
+     <zorder>spinBox_numNeurons</zorder>
+     <zorder>label_kernelStride_FC</zorder>
+     <zorder>label_numNeurons</zorder>
+     <zorder>label_kernelStride_3</zorder>
+     <zorder>label_kernelSize_2</zorder>
+     <zorder>label_poolStride</zorder>
+     <zorder>label_poolSize</zorder>
+     <zorder>label_keepProb</zorder>
+    </widget>
+    <widget class="QPushButton" name="AddLayer">
+     <property name="geometry">
+      <rect>
+       <x>490</x>
+       <y>350</y>
+       <width>81</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Add layer</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="BuildModel">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>350</y>
+       <width>81</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Build model</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_training">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>420</y>
+      <width>161</width>
+      <height>141</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Training</string>
+    </property>
     <widget class="QPushButton" name="TrainModel">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>71</y>
-       <width>111</width>
+       <x>40</x>
+       <y>100</y>
+       <width>81</width>
        <height>31</height>
       </rect>
      </property>
@@ -65,12 +589,86 @@
       <string>Train model</string>
      </property>
     </widget>
+    <widget class="QSplitter" name="splitter_batchSize">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>141</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="handleWidth">
+      <number>0</number>
+     </property>
+     <widget class="QLabel" name="label_batchSize">
+      <property name="text">
+       <string>Batch size</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_batchSize">
+      <property name="maximum">
+       <number>10000</number>
+      </property>
+      <property name="singleStep">
+       <number>1</number>
+      </property>
+      <property name="value">
+       <number>100</number>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QSplitter" name="splitter_numEpochs">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>141</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="handleWidth">
+      <number>10</number>
+     </property>
+     <widget class="QLabel" name="label_numEpochs">
+      <property name="text">
+       <string># of Epochs</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="spinBox_numEpochs">
+      <property name="maximum">
+       <number>100000</number>
+      </property>
+      <property name="value">
+       <number>10</number>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_evaluation">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>420</y>
+      <width>101</width>
+      <height>141</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Evaluation</string>
+    </property>
     <widget class="QPushButton" name="Evaluation">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>151</y>
-       <width>111</width>
+       <y>100</y>
+       <width>81</width>
        <height>31</height>
       </rect>
      </property>
@@ -82,8 +680,8 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>190</y>
-       <width>111</width>
+       <y>60</y>
+       <width>81</width>
        <height>31</height>
       </rect>
      </property>
@@ -91,25 +689,12 @@
       <string>Prediction</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="BuildModel">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>111</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Build model</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="LoadModel">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>110</y>
-       <width>111</width>
+       <y>20</y>
+       <width>81</width>
        <height>31</height>
       </rect>
      </property>
