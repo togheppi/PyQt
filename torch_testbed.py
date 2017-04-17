@@ -1,6 +1,7 @@
 import sys
 import torch
 import torch_model
+from PIL import Image
 from enum import Enum
 
 # enum parameters
@@ -32,18 +33,18 @@ class ModelParams:
 
     def dnn(self):
         self.name = "dnn_model/"
-        self.num_layers = 4
-        self.layer_type = [1, 1, 1, 1]
-        self.activate_fn = [3, 3, 3, 3]
-        self.init_fn = [3, 3, 3, 3]
-        self.output_size = [512, 512, 512, 512]
-        self.kernel_size = [None, None, None, None]
-        self.kernel_stride = [None, None, None, None]
-        self.pool_size = [None, None, None, None]
-        self.pool_stride = [None, None, None, None]
-        self.use_pooling = [False, False, False, False]
-        self.use_dropout = [True, True, True, True]
-        self.keep_prob = [0.7, 0.7, 0.7, 0.7]
+        self.num_layers = 2
+        self.layer_type = [1, 1]
+        self.activate_fn = [3, 3]
+        self.init_fn = [1, 1]
+        self.output_size = [256, 256]
+        self.kernel_size = [None, None]
+        self.kernel_stride = [None, None]
+        self.pool_size = [None, None]
+        self.pool_stride = [None, None]
+        self.use_pooling = [False, False]
+        self.use_dropout = [False, False]
+        self.keep_prob = [0.7, 0.7]
 
     def cnn(self):
         self.name = "cnn_model/"
@@ -66,7 +67,7 @@ class TrainParams:
         self.train_dir = "MNIST_train/"
         self.loss_fn = loss_fn_type.Cross_Entropy.value
         self.optimizer = optimizer_type.Adam.value
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
         self.training_epochs = 10
         self.batch_size = 100
 
@@ -77,69 +78,73 @@ def loadData(batch_size):
     num_batch_train = len(mnist_train) // batch_size
     num_batch_test = len(mnist_test) // batch_size
 
-    # dataset loader
-    data_loader = torch.utils.data.DataLoader(dataset=mnist_train,
-                                              batch_size=batch_size,
-                                              shuffle=True)
-
-    return mnist_train, mnist_test, num_batch_train, num_batch_test, data_loader
+    return mnist_train, mnist_test, num_batch_train, num_batch_test
 
 
-def loadTrainBatch(data_loader, index):
+def loadTrainBatch(mnist_train, batch_size):
     # load batch data
-    batch_xs, batch_ys = data_loader[index]
+    batch_x_list, batch_y_list = torch_model.load_batch_data(mnist_train, batch_size)
 
-    return batch_xs, batch_ys
+    return batch_x_list, batch_y_list
 
-def main():
-    # initial parameters
-    model_params = ModelParams()
-    model_params.dnn()  # DNN model
-    # self.model_params.cnn()   # CNN model
-    train_params = TrainParams()
-    model_built = False
-    model_trained = False
 
-    # initialize a model
-    print("\nBuilding a model...")
-    model = torch_model.TorchModel(model_params)
+# initial parameters
+model_params = ModelParams()
+model_params.dnn()  # CNN model
+# self.model_params.cnn()   # CNN model
+train_params = TrainParams()
+model_built = False
+model_trained = False
 
-    # build a model
-    if model.build():
-        model_built = True
-        print("\nModel built.")
-    else:
-        print("\nFailed to build a model!")
+# initialize a model
+print("\nBuilding a model...")
+model = torch_model.TorchModel(model_params)
 
-    num_epochs = train_params.training_epochs
-    batch_size = train_params.batch_size
-    learning_rate = train_params.learning_rate
+# build a model
+if model.build():
+    model_built = True
+    print("\nModel built.")
+else:
+    print("\nFailed to build a model!")
 
-    # load data
-    mnist_train, mnist_test, num_batch_train, num_batch_test, data_loader = loadData(batch_size)
+num_epochs = train_params.training_epochs
+batch_size = train_params.batch_size
+learning_rate = train_params.learning_rate
 
-    # optimizer
-    model.set_optimizer(train_params.loss_fn,
-                        train_params.optimizer,
-                        train_params.learning_rate)
+# load data
+mnist_train, mnist_test, num_batch_train, num_batch_test = loadData(batch_size)
 
-    print('\nTraining started...')
+# optimizer
+model.set_optimizer(train_params.loss_fn,
+                    train_params.optimizer,
+                    train_params.learning_rate)
 
-    # train my model
-    print('\t# of Epochs: %d, Batch size: %d, Learning rate: %f'
-          % (num_epochs, batch_size, learning_rate))
-    for epoch in range(num_epochs):
-        avg_cost = 0
+print('\nTraining started...')
 
-        for i, (batch_xs, batch_ys) in enumerate(data_loader):
-            # batch_xs, batch_ys = loadTrainBatch(data_loader, i)
-            c = model.train_batch(batch_xs, batch_ys)
-            avg_cost += c / num_batch_train
+# train my model
+print('\t# of Epochs: %d, Batch size: %d, Learning rate: %f'
+      % (num_epochs, batch_size, learning_rate))
+for epoch in range(num_epochs):
+    avg_cost = 0
+    batch_x_list, batch_y_list = loadTrainBatch(mnist_train, batch_size)
+    for i in range(num_batch_train):
+        batch_xs = batch_x_list[i]
+        batch_ys = batch_y_list[i]
+        c = model.train_batch(batch_xs, batch_ys)
+        avg_cost += c / num_batch_train
 
-        print('\t\tEpoch:', '%04d/%04d' % (epoch + 1, num_epochs),
-              'cost =', '{:.9f}'.format(avg_cost))
+    print('\t\tEpoch:', '%04d/%04d' % (epoch + 1, num_epochs),
+          'cost =', '{:.9f}'.format(avg_cost.data[0]))
 
-    print('\nTraining finished.')
+print('\nTraining finished.')
 
-if __name__ == '__main__':
-    main()
+# Test model and check accuracy
+print('\nEvaluating model with test data set...')
+print('\tAccuracy:', model.evaluate(mnist_test))
+
+
+img_fn = 'test_image.bmp'
+test_image = Image.open(img_fn, "r")
+# test_image = torch.Tensor(test_image)
+result = model.predict(test_image)
+print("Prediction:", result)
