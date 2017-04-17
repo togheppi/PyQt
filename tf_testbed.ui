@@ -38,6 +38,9 @@
      <property name="text">
       <string>MNIST image</string>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
     </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_modelBuilder">
@@ -52,39 +55,10 @@
     <property name="title">
      <string>Model Builder</string>
     </property>
-    <widget class="QWidget" name="verticalLayoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>9</x>
-       <y>30</y>
-       <width>181</width>
-       <height>361</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_modelViewer">
-      <item>
-       <widget class="QScrollArea" name="scrollArea_modelViewer">
-        <property name="widgetResizable">
-         <bool>true</bool>
-        </property>
-        <widget class="QWidget" name="scrollAreaWidgetContents">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>177</width>
-           <height>357</height>
-          </rect>
-         </property>
-        </widget>
-       </widget>
-      </item>
-     </layout>
-    </widget>
     <widget class="QGroupBox" name="groupBox_library">
      <property name="geometry">
       <rect>
-       <x>200</x>
+       <x>10</x>
        <y>20</y>
        <width>191</width>
        <height>121</height>
@@ -133,7 +107,7 @@
     <widget class="QGroupBox" name="groupBox_inputOutput">
      <property name="geometry">
       <rect>
-       <x>400</x>
+       <x>210</x>
        <y>20</y>
        <width>251</width>
        <height>121</height>
@@ -145,10 +119,10 @@
      <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>11</x>
         <y>30</y>
-        <width>231</width>
-        <height>88</height>
+        <width>232</width>
+        <height>82</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_inputOutput">
@@ -177,14 +151,14 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0" rowspan="2">
+       <item row="1" column="0">
         <widget class="QLabel" name="label_numClasses">
          <property name="text">
           <string># of classes</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
+       <item row="1" column="1">
         <widget class="QSpinBox" name="spinBox_numClasses">
          <property name="font">
           <font>
@@ -196,14 +170,14 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
+       <item row="2" column="0">
         <widget class="QLabel" name="label_numLayers">
          <property name="text">
           <string># of hidden layers</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
+       <item row="2" column="1">
         <widget class="QLineEdit" name="lineEdit_numLayers">
          <property name="text">
           <string>0 layer</string>
@@ -219,7 +193,7 @@
     <widget class="QGroupBox" name="groupBox_hiddenLayer">
      <property name="geometry">
       <rect>
-       <x>200</x>
+       <x>10</x>
        <y>150</y>
        <width>451</width>
        <height>241</height>
@@ -471,7 +445,7 @@
     <widget class="QPushButton" name="pushButton_addLayer">
      <property name="geometry">
       <rect>
-       <x>550</x>
+       <x>360</x>
        <y>400</y>
        <width>101</width>
        <height>31</height>
@@ -481,10 +455,39 @@
       <string>Add layer</string>
      </property>
     </widget>
+    <widget class="QWidget" name="verticalLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>470</x>
+       <y>30</y>
+       <width>181</width>
+       <height>361</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_modelViewer">
+      <item>
+       <widget class="QScrollArea" name="scrollArea_modelViewer">
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="scrollAreaWidgetContents">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>177</width>
+           <height>357</height>
+          </rect>
+         </property>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
     <widget class="QPushButton" name="pushButton_buildModel">
      <property name="geometry">
       <rect>
-       <x>50</x>
+       <x>510</x>
        <y>400</y>
        <width>101</width>
        <height>31</height>
@@ -498,9 +501,9 @@
    <widget class="QGroupBox" name="groupBox_training">
     <property name="geometry">
      <rect>
-      <x>450</x>
+      <x>540</x>
       <y>460</y>
-      <width>411</width>
+      <width>321</width>
       <height>201</height>
      </rect>
     </property>
@@ -510,8 +513,8 @@
     <widget class="QPushButton" name="pushButton_trainModel">
      <property name="geometry">
       <rect>
-       <x>300</x>
-       <y>95</y>
+       <x>210</x>
+       <y>160</y>
        <width>101</width>
        <height>31</height>
       </rect>
@@ -523,10 +526,10 @@
     <widget class="QScrollArea" name="scrollArea_training">
      <property name="geometry">
       <rect>
-       <x>9</x>
-       <y>130</y>
-       <width>391</width>
-       <height>61</height>
+       <x>210</x>
+       <y>30</y>
+       <width>101</width>
+       <height>121</height>
       </rect>
      </property>
      <property name="widgetResizable">
@@ -537,8 +540,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>389</width>
-        <height>59</height>
+        <width>99</width>
+        <height>119</height>
        </rect>
       </property>
       <widget class="QTextEdit" name="textEdit_training">
@@ -546,8 +549,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>391</width>
-         <height>61</height>
+         <width>101</width>
+         <height>121</height>
         </rect>
        </property>
       </widget>
@@ -558,86 +561,48 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>391</width>
-       <height>24</height>
+       <width>191</width>
+       <height>138</height>
       </rect>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_lossOptimizer">
-      <item>
+     <layout class="QGridLayout" name="gridLayout_training">
+      <item row="0" column="0">
        <widget class="QLabel" name="label_lossFn">
         <property name="text">
          <string>Loss function</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="1">
        <widget class="QComboBox" name="comboBox_lossFn"/>
       </item>
-      <item>
+      <item row="1" column="0">
        <widget class="QLabel" name="label_optimizer">
         <property name="text">
          <string>Optimizer</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="1">
        <widget class="QComboBox" name="comboBox_optimizer"/>
       </item>
-     </layout>
-    </widget>
-    <widget class="QLabel" name="label_batchSize_learningRate">
-     <property name="geometry">
-      <rect>
-       <x>11</x>
-       <y>101</y>
-       <width>81</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Learning rate</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_learningRate">
-     <property name="geometry">
-      <rect>
-       <x>130</x>
-       <y>99</y>
-       <width>76</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>0.001</string>
-     </property>
-     <property name="readOnly">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QWidget" name="">
-     <property name="geometry">
-      <rect>
-       <x>11</x>
-       <y>64</y>
-       <width>391</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_epochBatch">
-      <item>
+      <item row="2" column="0">
        <widget class="QLabel" name="label_numEpochs">
         <property name="text">
          <string># of Epochs</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
        </widget>
       </item>
-      <item>
+      <item row="2" column="1">
        <widget class="QSpinBox" name="spinBox_numEpochs">
         <property name="maximum">
          <number>100000</number>
@@ -647,14 +612,17 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="3" column="0">
        <widget class="QLabel" name="label_batchSize">
         <property name="text">
          <string>Batch size</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
        </widget>
       </item>
-      <item>
+      <item row="3" column="1">
        <widget class="QSpinBox" name="spinBox_batchSize">
         <property name="maximum">
          <number>10000</number>
@@ -664,6 +632,26 @@
         </property>
         <property name="value">
          <number>100</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_batchSize_learningRate">
+        <property name="text">
+         <string>Learning rate</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="lineEdit_learningRate">
+        <property name="text">
+         <string>0.001</string>
+        </property>
+        <property name="readOnly">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -686,7 +674,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>110</y>
+       <y>70</y>
        <width>101</width>
        <height>31</height>
       </rect>
@@ -699,7 +687,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>70</y>
+       <y>110</y>
        <width>101</width>
        <height>31</height>
       </rect>
@@ -734,6 +722,63 @@
     <property name="text">
      <string>Exit</string>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_plotPrediction">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>320</y>
+      <width>301</width>
+      <height>221</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Prediction</string>
+    </property>
+    <widget class="QWidget" name="horizontalLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>29</y>
+       <width>281</width>
+       <height>181</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_plotPrediction"/>
+    </widget>
+   </widget>
+   <widget class="QScrollArea" name="scrollArea_log">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>470</y>
+      <width>201</width>
+      <height>191</height>
+     </rect>
+    </property>
+    <property name="widgetResizable">
+     <bool>true</bool>
+    </property>
+    <widget class="QWidget" name="scrollAreaWidgetContents_log">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>199</width>
+       <height>189</height>
+      </rect>
+     </property>
+     <widget class="QTextEdit" name="textEdit_log">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>201</width>
+        <height>191</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

@@ -4,9 +4,15 @@ from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
 from enum import Enum
 
+
 def load_data(data_path="MNIST_data/", one_hot=True):
     dataset = input_data.read_data_sets(data_path, one_hot=one_hot)
     return dataset
+
+
+def load_batch_data(dataset, batch_size):
+    batch_xs, batch_ys = dataset.next_batch(batch_size)
+    return batch_xs, batch_ys
 
 # input_size = 784
 # num_classes = 10
@@ -18,10 +24,12 @@ init_fn_type = Enum('init_fn_type', 'No_init Normal Xavier')
 loss_fn_type = Enum('loss_fn_type', 'Cross_Entropy')
 optimizer_type = Enum('optimizer_type', 'SGD Adam RMSProp')
 
-class Model:
 
-    def __init__(self, sess, model_params):
-        self.sess = sess
+class TFModel:
+
+    def __init__(self, model_params):
+        # TF session
+        self.sess = tf.Session()
         self.model_params = model_params
 
 
@@ -80,14 +88,7 @@ class Model:
                     print("\t\t# of neurons = %d" % num_neurons)
                     print("\t\tInput:", self.input.shape, "-> Output:", out.shape)
 
-                    # Dropout
-                    keep_prob = self.model_params.keep_prob[i]
-                    if self.model_params.use_dropout[i]:
-                        out = tf.layers.dropout(inputs=out,
-                                                rate=keep_prob,
-                                                training=self.training)
 
-                    print("\tAdding Dropout layer...keep_prob = %0.1f" % keep_prob)
 
                 # Convolutional Layer
                 elif self.model_params.layer_type[i] == layer_type.CNN.value:
@@ -113,7 +114,7 @@ class Model:
                     print("\t\tKernel size = %dx%d, Stride = (%d, %d)" %(k_size, k_size, s_size, s_size))
                     print("\t\tInput:", self.input.shape, "-> Output:", out.shape)
 
-                    # Pooling Layer #1
+                    # Pooling Layer
                     self.input = out
                     p_size = self.model_params.pool_size[i]
                     pool_s_size = self.model_params.pool_stride[i]
@@ -124,16 +125,16 @@ class Model:
                                                       padding="SAME",
                                                       strides=pool_s_size)
 
-                    print("\tAdding MaxPooling layer...")
-                    print("\t\tKernel size = %dx%d, Stride = (%d, %d)" %(p_size, p_size, pool_s_size, pool_s_size))
-                    print("\t\tInput:", self.input.shape, "-> Output:", out.shape)
+                        print("\tAdding MaxPooling layer...")
+                        print("\t\tKernel size = %dx%d, Stride = (%d, %d)" %(p_size, p_size, pool_s_size, pool_s_size))
+                        print("\t\tInput:", self.input.shape, "-> Output:", out.shape)
 
-                    # Dropout
-                    keep_prob = self.model_params.keep_prob[i]
-                    if self.model_params.use_dropout[i]:
-                        out = tf.layers.dropout(inputs=out,
-                                                rate=keep_prob,
-                                                training=self.training)
+                # Dropout
+                keep_prob = self.model_params.keep_prob[i]
+                if self.model_params.use_dropout[i]:
+                    out = tf.layers.dropout(inputs=out,
+                                            rate=keep_prob,
+                                            training=self.training)
 
                     print("\tAdding Dropout layer...")
                     print("\t\tkeep_prob = %0.1f" % keep_prob)
@@ -153,7 +154,7 @@ class Model:
                                           units=self.model_params.num_classes,
                                           activation=None,
                                           kernel_initializer=init_fn)
-            print("\t\tAdding FC layer...")
+            print("\tAdding FC layer...")
             print("\t\tInput:", self.input.shape, "-> Output:", self.logits.shape)
 
         return True
@@ -180,7 +181,9 @@ class Model:
         else:
             pass
 
-
+        # initialize variables
+        self.sess.run(tf.global_variables_initializer())
+        print("\nGlobal variable initialized.")
 
     def predict(self, image, training=False):
         image = np.asarray(image, dtype="float32")
@@ -190,9 +193,10 @@ class Model:
 
         image = 1.0 - image
         image = image.reshape((1, self.model_params.input_size))
-        prediction = tf.argmax(tf.nn.softmax(self.logits), 1)
-        return self.sess.run(prediction,
-                      feed_dict={self.X: image, self.training: training})
+        score = tf.nn.softmax(self.logits)
+        prediction = tf.argmax(score, 1)[0]
+        return self.sess.run([score, prediction],
+                             feed_dict={self.X: image, self.training: training})
 
     def evaluate(self, test_data_set, training=False):
         correct_prediction = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.Y, 1))
@@ -225,10 +229,10 @@ class Model:
                 batch_xs, batch_ys = train_data_set.next_batch(batch_size)
                 c, _ = self.sess.run([self.cost, self.optimizer],
                                      feed_dict={self.X: batch_xs, self.Y: batch_ys, self.training: training})
-                avg_cost += c / total_batch
+                self.avg_cost += c / total_batch
 
             print('\t\tEpoch:', '%04d/%04d' % (epoch + 1, num_epochs),
-                  'cost =', '{:.9f}'.format(avg_cost))
+                  'cost =', '{:.9f}'.format(self.avg_cost))
 
         print('\nTraining finished.')
 
@@ -239,5 +243,17 @@ class Model:
         self.saver.save(self.sess, self.restore_dir + "model")
         print('\nModel saved to', self.restore_dir)
 
+    def train_batch(self, batch_xs, batch_ys, training=True):
+        c, _ = self.sess.run([self.cost, self.optimizer], feed_dict={self.X: batch_xs, self.Y: batch_ys, self.training: training})
+        return c
 
+    def load_model(self, restore_dir):
+        # restore saved session
+        self.saver = tf.train.Saver()
+        self.saver.restore(self.sess, restore_dir + "model")
 
+    def save_model(self, restore_dir):
+        # save session
+        self.saver = tf.train.Saver()
+        tf.gfile.MakeDirs(restore_dir)
+        self.saver.save(self.sess, restore_dir + "model")
