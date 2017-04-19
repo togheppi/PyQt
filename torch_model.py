@@ -28,12 +28,12 @@ def load_batch_data(dataset, batch_size):
     data_loader = torch.utils.data.DataLoader(dataset=dataset,
                                               batch_size=batch_size,
                                               shuffle=True)
-    batch_x_list = []
-    batch_y_list = []
-    for i, (batch_xs, batch_ys) in enumerate(data_loader):
-        batch_x_list.append(batch_xs)
-        batch_y_list.append(batch_ys)
-    return batch_x_list, batch_y_list
+    # batch_x_list = []
+    # batch_y_list = []
+    # for i, (batch_xs, batch_ys) in enumerate(data_loader):
+    #     batch_x_list.append(batch_xs)
+    #     batch_y_list.append(batch_ys)
+    return data_loader
 
 # input_size = 784
 # num_classes = 10
@@ -41,7 +41,7 @@ def load_batch_data(dataset, batch_size):
 # enum parameters
 layer_type = Enum('layer_type', 'FC CNN')
 activate_fn_type = Enum('activate_fn_type', 'No_act Sigmoid tanh ReLU')
-init_fn_type = Enum('init_fn_type', 'No_init Normal Xavier')
+init_fn_type = Enum('init_fn_type', 'Uniform Normal Xavier')
 loss_fn_type = Enum('loss_fn_type', 'Cross_Entropy')
 optimizer_type = Enum('optimizer_type', 'SGD Adam RMSProp')
 
@@ -80,7 +80,9 @@ class TorchModel(torch.nn.Module):
                 self.layer.add_module('FC', fc)
 
                 # Initializer
-                if self.model_params.init_fn[i] == init_fn_type.Normal.value:
+                if self.model_params.init_fn[i] == init_fn_type.Uniform.value:
+                    torch.nn.init.uniform(fc.weight)
+                elif self.model_params.init_fn[i] == init_fn_type.Normal.value:
                     torch.nn.init.normal(fc.weight)
                 elif self.model_params.init_fn[i] == init_fn_type.Xavier.value:
                     torch.nn.init.xavier_uniform(fc.weight)
@@ -127,7 +129,10 @@ class TorchModel(torch.nn.Module):
                 self.layer.add_module('CNN', conv)
 
                 # Initializer
-                if self.model_params.init_fn[i] == init_fn_type.Normal.value:
+                # Initializer
+                if self.model_params.init_fn[i] == init_fn_type.Uniform.value:
+                    torch.nn.init.uniform(fc.weight)
+                elif self.model_params.init_fn[i] == init_fn_type.Normal.value:
                     torch.nn.init.normal(conv.weight)
                 elif self.model_params.init_fn[i] == init_fn_type.Xavier.value:
                     torch.nn.init.xavier_uniform(conv.weight)
@@ -258,17 +263,34 @@ class TorchModel(torch.nn.Module):
         self.accuracy = correct_prediction.float().mean()
         return self.accuracy
 
-    def train_batch(self, batch_xs, batch_ys):
-        self.train()
-        X = Variable(batch_xs)
-        Y = Variable(batch_ys)
-        self.optimizer.zero_grad()
-        hypothesis = self.forward(X)
-        self.cost = self.criterion(hypothesis, Y)
-        self.cost.backward()
-        self.optimizer.step()
+    def train_batch(self, train_params, dataset):
+        self.train_params = train_params
+        self.avg_cost = 0
+        self.avg_accu = 0
+        # data_loader = self.load_batch_data(dataset, self.train_params.batch_size)
+        # dataset loader
+        data_loader = torch.utils.data.DataLoader(dataset=dataset,
+                                                  batch_size=self.train_params.batch_size,
+                                                  shuffle=True)
 
-        return self.cost
+        for step, (batch_xs, batch_ys) in enumerate(data_loader):
+            self.train()
+            X = Variable(batch_xs)
+            Y = Variable(batch_ys)
+            self.optimizer.zero_grad()
+            hypothesis = self.forward(X)
+            self.cost = self.criterion(hypothesis, Y)
+            self.cost.backward()
+            self.optimizer.step()
+
+            # average cost and accuracy
+            self.avg_cost += self.cost / self.train_params.num_batch_train
+
+            correct_prediction = (torch.max(hypothesis.data, 1)[1] == Y.data)
+            accu = correct_prediction.float().mean()
+            self.avg_accu += accu / self.train_params.num_batch_train
+
+        return self.avg_cost.data[0], self.avg_accu
     
     def visualize_model(self, X_test):
         out = self.forward(X_test)

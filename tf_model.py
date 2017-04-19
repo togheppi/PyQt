@@ -12,7 +12,7 @@ def load_data(data_path="MNIST_data/", one_hot=True):
 # enum parameters
 layer_type = Enum('layer_type', 'FC CNN')
 activate_fn_type = Enum('activate_fn_type', 'No_act Sigmoid tanh ReLU')
-init_fn_type = Enum('init_fn_type', 'No_init Normal Xavier')
+init_fn_type = Enum('init_fn_type', 'Uniform Normal Xavier')
 loss_fn_type = Enum('loss_fn_type', 'Cross_Entropy')
 optimizer_type = Enum('optimizer_type', 'SGD Adam RMSProp')
 
@@ -63,8 +63,8 @@ class TFModel:
                             pass
 
                         # Initializer
-                        if self.model_params.init_fn[i] == init_fn_type.No_init.value:
-                            init_fn = None
+                        if self.model_params.init_fn[i] == init_fn_type.Uniform.value:
+                            init_fn = tf.random_uniform_initializer()
                         elif self.model_params.init_fn[i] == init_fn_type.Normal.value:
                             init_fn = tf.random_normal_initializer()
                         elif self.model_params.init_fn[i] == init_fn_type.Xavier.value:

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1016</width>
+    <width>1086</width>
     <height>770</height>
    </rect>
   </property>
@@ -48,7 +48,7 @@
      <rect>
       <x>330</x>
       <y>10</y>
-      <width>661</width>
+      <width>701</width>
       <height>491</height>
      </rect>
     </property>
@@ -83,7 +83,7 @@
           <string>TensorFlow</string>
          </property>
          <property name="checked">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -98,6 +98,9 @@
         <widget class="QRadioButton" name="radioButton_pytorch">
          <property name="text">
           <string>PyTorch</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -116,7 +119,7 @@
      <property name="title">
       <string>Input / Output</string>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>12</x>
@@ -462,7 +465,7 @@
     <widget class="QPushButton" name="pushButton_addLayer">
      <property name="geometry">
       <rect>
-       <x>360</x>
+       <x>350</x>
        <y>450</y>
        <width>101</width>
        <height>31</height>
@@ -477,7 +480,7 @@
       <rect>
        <x>470</x>
        <y>30</y>
-       <width>181</width>
+       <width>221</width>
        <height>411</height>
       </rect>
      </property>
@@ -492,7 +495,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>177</width>
+           <width>217</width>
            <height>407</height>
           </rect>
          </property>
@@ -504,7 +507,7 @@
     <widget class="QPushButton" name="pushButton_buildModel">
      <property name="geometry">
       <rect>
-       <x>510</x>
+       <x>470</x>
        <y>450</y>
        <width>101</width>
        <height>31</height>
@@ -512,6 +515,19 @@
      </property>
      <property name="text">
       <string>Build model</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_clearModel">
+     <property name="geometry">
+      <rect>
+       <x>590</x>
+       <y>450</y>
+       <width>101</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Clear model</string>
      </property>
     </widget>
    </widget>
@@ -579,7 +595,7 @@
        <x>10</x>
        <y>30</y>
        <width>191</width>
-       <height>138</height>
+       <height>161</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_training">
