@@ -222,16 +222,16 @@
      <property name="title">
       <string>Hidden Layer Parameters</string>
      </property>
-     <widget class="QWidget" name="layoutWidget">
+     <widget class="QWidget" name="">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>30</y>
+        <x>11</x>
+        <y>31</y>
         <width>431</width>
         <height>201</height>
        </rect>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_hiddenLayer">
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_FC">
          <item>
@@ -374,7 +374,7 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_maxDrop">
+        <layout class="QHBoxLayout" name="horizontalLayout_poolDrop">
          <item>
           <widget class="QCheckBox" name="checkBox_maxPooling">
            <property name="text">
@@ -383,22 +383,18 @@
           </widget>
          </item>
          <item>
-          <layout class="QGridLayout" name="gridLayout_maxPooling">
-           <item row="1" column="0" colspan="2">
-            <widget class="QSpinBox" name="spinBox_poolSize">
-             <property name="value">
-              <number>2</number>
+          <layout class="QGridLayout" name="gridLayout_pooling">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_poolSize">
+             <property name="text">
+              <string>Kernel</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
-           <item row="1" column="2">
-            <widget class="QSpinBox" name="spinBox_poolStride">
-             <property name="value">
-              <number>2</number>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
+           <item row="0" column="1">
             <widget class="QLabel" name="label_poolStride">
              <property name="text">
               <string>Stride</string>
@@ -408,13 +404,17 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="0" colspan="2">
-            <widget class="QLabel" name="label_poolSize">
-             <property name="text">
-              <string>Kernel</string>
+           <item row="1" column="0">
+            <widget class="QSpinBox" name="spinBox_poolSize">
+             <property name="value">
+              <number>2</number>
              </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QSpinBox" name="spinBox_poolStride">
+             <property name="value">
+              <number>2</number>
              </property>
             </widget>
            </item>
@@ -534,68 +534,22 @@
    <widget class="QGroupBox" name="groupBox_training">
     <property name="geometry">
      <rect>
-      <x>540</x>
+      <x>710</x>
       <y>510</y>
       <width>321</width>
-      <height>201</height>
+      <height>191</height>
      </rect>
     </property>
     <property name="title">
      <string>Training</string>
     </property>
-    <widget class="QPushButton" name="pushButton_trainModel">
-     <property name="geometry">
-      <rect>
-       <x>210</x>
-       <y>160</y>
-       <width>101</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Train model</string>
-     </property>
-    </widget>
-    <widget class="QScrollArea" name="scrollArea_training">
-     <property name="geometry">
-      <rect>
-       <x>210</x>
-       <y>30</y>
-       <width>101</width>
-       <height>121</height>
-      </rect>
-     </property>
-     <property name="widgetResizable">
-      <bool>true</bool>
-     </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents_training">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>99</width>
-        <height>119</height>
-       </rect>
-      </property>
-      <widget class="QTextEdit" name="textEdit_training">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>101</width>
-         <height>121</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
-    </widget>
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>30</y>
        <width>191</width>
-       <height>161</height>
+       <height>151</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_training">
@@ -690,50 +644,37 @@
       </item>
      </layout>
     </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_evaluation">
-    <property name="geometry">
-     <rect>
-      <x>870</x>
-      <y>510</y>
-      <width>121</width>
-      <height>151</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Evaluation</string>
-    </property>
-    <widget class="QPushButton" name="pushButton_evaluation">
+    <widget class="QPushButton" name="pushButton_saveModel">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>210</x>
        <y>70</y>
        <width>101</width>
        <height>31</height>
       </rect>
      </property>
      <property name="text">
-      <string>Evaluation</string>
+      <string>Save model</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_prediction">
+    <widget class="QPushButton" name="pushButton_trainModel">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>110</y>
+       <x>210</x>
+       <y>30</y>
        <width>101</width>
        <height>31</height>
       </rect>
      </property>
      <property name="text">
-      <string>Prediction</string>
+      <string>Train model</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_loadModel">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>30</y>
+       <x>210</x>
+       <y>110</y>
        <width>101</width>
        <height>31</height>
       </rect>
@@ -742,12 +683,25 @@
       <string>Load model</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="pushButton_evaluation">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>150</y>
+       <width>101</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Evaluation</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="pushButton_Exit">
     <property name="geometry">
      <rect>
-      <x>880</x>
-      <y>670</y>
+      <x>920</x>
+      <y>710</y>
       <width>101</width>
       <height>31</height>
      </rect>
@@ -760,7 +714,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>320</y>
+      <y>330</y>
       <width>301</width>
       <height>221</height>
      </rect>
@@ -812,6 +766,45 @@
       </property>
      </widget>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="pushButton_loadImage">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>560</y>
+      <width>101</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Load image</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_prediction">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>560</y>
+      <width>101</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Prediction</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_tensorBoard">
+    <property name="geometry">
+     <rect>
+      <x>570</x>
+      <y>670</y>
+      <width>101</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TensorBoard</string>
+    </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

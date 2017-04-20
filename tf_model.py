@@ -12,7 +12,7 @@ def load_data(data_path="MNIST_data/", one_hot=True):
 # enum parameters
 layer_type = Enum('layer_type', 'FC CNN')
 activate_fn_type = Enum('activate_fn_type', 'No_act Sigmoid tanh ReLU')
-init_fn_type = Enum('init_fn_type', 'Uniform Normal Xavier')
+init_fn_type = Enum('init_fn_type', 'No_init Normal Xavier')
 loss_fn_type = Enum('loss_fn_type', 'Cross_Entropy')
 optimizer_type = Enum('optimizer_type', 'SGD Adam RMSProp')
 
@@ -28,8 +28,8 @@ class TFModel:
         # tensorboard
         self.merged_summary = tf.summary.merge_all()
         self.writer = tf.summary.FileWriter(log_dir)
-        self.writer.add_graph(self.sess.graph)  # Show the graph
-        print('\nLog saved to', log_dir)
+        # self.writer.add_graph(self.sess.graph)  # Show the graph
+        print('\nTraining log saved to', log_dir)
 
     def init_variables(self):
         # initialize variables
@@ -63,8 +63,8 @@ class TFModel:
                             pass
 
                         # Initializer
-                        if self.model_params.init_fn[i] == init_fn_type.Uniform.value:
-                            init_fn = tf.random_uniform_initializer()
+                        if self.model_params.init_fn[i] == init_fn_type.No_init.value:
+                            init_fn = None
                         elif self.model_params.init_fn[i] == init_fn_type.Normal.value:
                             init_fn = tf.random_normal_initializer()
                         elif self.model_params.init_fn[i] == init_fn_type.Xavier.value:
@@ -147,7 +147,7 @@ class TFModel:
                             print("\t\tkeep_prob = %0.1f" % keep_prob)
 
                         # Summaries
-                        tf.summary.histogram(layer_name, out)
+                        tf.summary.histogram('Activation', out)
 
             # Output (no activation) Layer
             with tf.name_scope('OutputLayer'):
@@ -169,18 +169,25 @@ class TFModel:
                 print("\t\tInput:", self.input.shape, "-> Output:", self.logits.shape)
 
                 # Summaries
-                tf.summary.histogram('Output layer', self.logits)
+                tf.summary.histogram('Activation', self.logits)
+
+
 
         return True
 
-    def set_optimizer(self, lossFn, optimizer, learning_rate):
+    def set_optimizer(self, train_params):
+        self.train_params = train_params
+        lossFn = self.train_params.loss_fn
+        optimizer = self.train_params.optimizer
+        learning_rate = self.train_params.learning_rate
+
         with tf.name_scope(self.model_params.name + '/Train'):
             # define cost/loss & optimizer
             with tf.name_scope('Cost'):
                 if lossFn == loss_fn_type.Cross_Entropy.value:
                     print("\nLoss function: Cross_Entropy.")
                     self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-                        logits=self.logits, labels=self.Y))
+                                               logits=self.logits, labels=self.Y))
 
                 # Summaries
                 tf.summary.scalar('Cost', self.cost)
@@ -209,7 +216,7 @@ class TFModel:
                 tf.summary.scalar('Accuracy', self.accuracy)
 
             # merge summaries
-            self.merge_summaries(self.model_params.train_dir)
+            self.merge_summaries(self.train_params.train_dir)
 
             # initialize variables
             self.init_variables()
@@ -309,8 +316,12 @@ class TFModel:
         self.saver = tf.train.Saver()
         self.saver.restore(self.sess, restore_dir + self.model_params.name)
 
-    def save_model(self, restore_dir):
+    def save_model(self, model_dir):
         # save session
+        self.init_variables()
         self.saver = tf.train.Saver()
-        tf.gfile.MakeDirs(restore_dir)
-        self.saver.save(self.sess, restore_dir + self.model_params.name)
+        tf.gfile.MakeDirs(model_dir)
+        self.saver.save(self.sess, model_dir + self.model_params.name)
+        # save graph
+        self.writer = tf.summary.FileWriter(model_dir)
+        self.writer.add_graph(self.sess.graph)  # Show the graph

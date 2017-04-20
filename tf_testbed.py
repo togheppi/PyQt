@@ -1,3 +1,4 @@
+import os
 import sys
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -8,8 +9,6 @@ from PIL import Image
 # import torch_model
 # import tf_model
 
-
-
 from enum import Enum
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
@@ -17,7 +16,7 @@ from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanva
 # enum parameters
 layer_type = Enum('layer_type', 'FC CNN')
 activate_fn_type = Enum('activate_fn_type', 'No_act Sigmoid tanh ReLU')
-init_fn_type = Enum('init_fn_type', 'Uniform Normal Xavier')
+init_fn_type = Enum('init_fn_type', 'No_init Normal Xavier')
 loss_fn_type = Enum('loss_fn_type', 'Cross_Entropy')
 optimizer_type = Enum('optimizer_type', 'SGD Adam RMSProp')
 
@@ -40,7 +39,8 @@ class ModelParams:
         self.use_pooling = []
         self.use_dropout = []
         self.keep_prob = []
-        self.train_dir = "MNIST_train/"
+        self.init_model_dir = 'MNIST_train/'
+
 
     def dnn(self):
         self.name = "dnn_model"
@@ -84,7 +84,7 @@ class TrainParams:
         self.training_epochs = 10
         self.batch_size = 100
         self.num_train_batch = 1
-
+        self.train_dir = "MNIST_train/"
 
 class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
     def __init__(self):
@@ -94,7 +94,7 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         # ui control
         # combo boxes
         self.comboBox_actFn.addItems(['No_act', 'Sigmoid', 'tanh', 'ReLU'])
-        self.comboBox_initFn.addItems(['Uniform', 'Normal', 'Xavier'])
+        self.comboBox_initFn.addItems(['No_init', 'Normal', 'Xavier'])
         self.comboBox_lossFn.addItems(['Cross Entropy'])
         self.comboBox_optimizer.addItems(['SGD', 'Adam', 'RMSProp'])
 
@@ -102,10 +102,15 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         self.pushButton_buildModel.clicked.connect(self.btn_BuildModel_clicked)
         self.pushButton_clearModel.clicked.connect(self.btn_ClearModel_clicked)
         self.pushButton_trainModel.clicked.connect(self.btn_TrainModel_clicked)
+        self.pushButton_saveModel.clicked.connect(self.btn_SaveModel_clicked)
         self.pushButton_loadModel.clicked.connect(self.btn_LoadModel_clicked)
         self.pushButton_evaluation.clicked.connect(self.btn_Evaluation_clicked)
         self.pushButton_prediction.clicked.connect(self.btn_Prediction_clicked)
+        self.pushButton_loadImage.clicked.connect(self.btn_LoadImage_clicked)
+        self.pushButton_tensorBoard.clicked.connect(self.btn_TensorBoard_clicked)
         self.pushButton_Exit.clicked.connect(app.quit)
+
+        # self.pushButton_saveModel.setDisabled(True)
 
         self.radioButton_tensorflow.clicked.connect(self.tensorflow_selected)
         self.radioButton_keras.clicked.connect(self.keras_selected)
@@ -133,6 +138,16 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         self.comboBox_initFn.setCurrentIndex(0)     # No initializer
         self.comboBox_lossFn.setCurrentIndex(0)     # Cross-Entropy
         self.comboBox_optimizer.setCurrentIndex(1)  # Adam optimizer
+
+        # show score
+        self.fig = plt.Figure()
+        self.canvas = FigureCanvas(self.fig)
+        self.horizontalLayout_plotPrediction.addWidget(self.canvas)
+        self.subplot = self.fig.add_subplot(1, 1, 1)
+        self.subplot.set_xticks(range(10))
+        self.subplot.set_xlim(-0.5, 9.5)
+        self.subplot.set_ylim(0, 1)
+        self.subplot.tick_params(axis='both', labelsize=8)
 
 
     def tensorflow_selected(self):
@@ -162,13 +177,13 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         print("Keras (TF backend) library is selected.")
 
     def pytorch_selected(self):
-        # if 'tf_model' in sys.modules:
-        #     del sys.modules['tf_model']
-        #     print('tf_model deleted')
-        # if 'tf' in sys.modules:
-        #     del sys.modules['tf']
-        #     print('tf deleted')
-        # globals()['torch_model'] = __import__('torch_model')
+        if 'tf_model' in sys.modules:
+            del sys.modules['tf_model']
+            print('tf_model deleted')
+        if 'tf' in sys.modules:
+            del sys.modules['tf']
+            print('tf deleted')
+        globals()['torch_model'] = __import__('torch_model')
 
         print("PyTorch library is selected.")
 
@@ -191,17 +206,6 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             # self.train_params.num_batch_test = len(self.mnist_test) // self.train_params.batch_size
             pass
 
-    # def loadTrainBatch(self, batch_size):
-    #     # load batch data
-    #     if self.radioButton_tensorflow.isChecked():
-    #         batch_xs, batch_ys = tf_model.load_batch_data(self.mnist_train, batch_size)
-    #         return batch_xs, batch_ys
-    #     elif self.radioButton_keras.isChecked():
-    #         pass
-    #     elif self.radioButton_pytorch.isChecked():
-    #         batch_x_list, batch_y_list = torch_model.load_batch_data(self.mnist_train, batch_size)
-    #         return batch_x_list, batch_y_list
-
     def btn_ClearModel_clicked(self):
         # reset parameters
         self.model_params = ModelParams()
@@ -218,6 +222,9 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
 
         print('Clear model.')
         self.textEdit_log.append('Clear model.')
+
+        self.pushButton_TrainModel.setDisabled(True)
+        self.pushButton_saveModel.setDisabled(True)
 
     def btn_AddLayer_clicked(self):
         # model name
@@ -241,8 +248,8 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         if self.checkBox_initFn.isChecked():
             self.model_params.init_fn.append(self.comboBox_initFn.currentIndex() + 1)
         else:
-            self.model_params.init_fn.append(init_fn_type.Uniform.value)
-            self.comboBox_initFn.setCurrentIndex(init_fn_type.Uniform.value - 1)
+            self.model_params.init_fn.append(init_fn_type.No_init.value)
+            self.comboBox_initFn.setCurrentIndex(init_fn_type.No_init.value - 1)
         # max pooling
         if self.checkBox_maxPooling.isChecked():
             self.model_params.use_pooling.append(True)
@@ -266,7 +273,7 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         print("Hidden layer #%d is added to model name, '%s'."
               % (self.model_params.num_layers, self.model_params.name))
         self.textEdit_log.append("Hidden layer #%d is added to model name, '%s'."
-              % (self.model_params.num_layers, self.model_params.name))
+                                 % (self.model_params.num_layers, self.model_params.name))
 
     def btn_BuildModel_clicked(self):
         if self.model_built:
@@ -281,14 +288,11 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             print("\nBuilding a model...")
             self.textEdit_log.append("Building a model...")
             if self.radioButton_tensorflow.isChecked():
-                self.model_params.train_dir = self.train_dir + 'tf_model/' + self.model_params.name + '/'
                 self.model = tf_model.TFModel(self.model_params)
             elif self.radioButton_keras.isChecked():
-                self.model_params.train_dir = self.train_dir + 'keras_model/' + self.model_params.name + '/'
                 self.model = keras_model.KerasModel(self.model_params)
                 # pass
             elif self.radioButton_pytorch.isChecked():
-                # self.model_params.train_dir = self.train_dir + 'torch_model/' + self.model_params.name + '/'
                 # self.model = torch_model.TorchModel(self.model_params)
                 pass
 
@@ -297,16 +301,38 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
                 self.model_built = True
                 print("\nModel built.")
                 self.textEdit_log.append("Model built.")
+
+                self.pushButton_trainModel.setEnabled(True)
+                self.pushButton_clearModel.setEnabled(True)
             else:
                 print("\nFailed to build a model!")
                 return False
+
+            # save model dir
+            if self.radioButton_tensorflow.isChecked():
+                self.model_params.init_model_dir = self.train_dir + 'tf_model/' + self.model_params.name + '/'
+            elif self.radioButton_keras.isChecked():
+                self.model_params.init_model_dir = self.train_dir + 'keras_model/' + self.model_params.name + '/'
+                # pass
+            elif self.radioButton_pytorch.isChecked():
+                # init_model_dir = self.train_dir + 'torch_model/' + self.model_params.name + '/'
+                pass
 
         return True
 
     def btn_TrainModel_clicked(self):
         if self.model_built:
-            # train parameters
+            # save train dir
+            run = 1
+            train_dir = self.model_params.init_model_dir + 'run_%d/' % run
+            # increase number of runs
+            while os.path.exists(train_dir):
+                run += 1
+                train_dir = self.model_params.init_model_dir + 'run_%d/' % run
 
+            self.train_params.train_dir = train_dir
+
+            # train parameters
             self.train_params.loss_fn = self.comboBox_lossFn.currentIndex() + 1
             self.train_params.optimizer = self.comboBox_optimizer.currentIndex() + 1
             self.train_params.training_epochs = self.spinBox_numEpochs.value()
@@ -321,18 +347,16 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             self.loadData()
 
             # optimizer
-            self.model.set_optimizer(self.train_params.loss_fn,
-                                     self.train_params.optimizer,
-                                     self.train_params.learning_rate)
+            self.model.set_optimizer(self.train_params)
 
             print('\nTraining started...')
             self.textEdit_log.append("Training started...")
 
             # train my model
-            print('\t# of Epochs: %d, Batch size: %d, Learning rate: %f'
+            print('\t# of Epochs: %d, Batch size: %d, Learning rate: %0.4f'
                   % (num_epochs, batch_size, learning_rate))
-            self.textEdit_log.append('# of Epochs: %d, Batch size: %d, Learning rate: %f'
-                  % (num_epochs, batch_size, learning_rate))
+            self.textEdit_log.append('# of Epochs: %d, Batch size: %d, Learning rate: %0.4f'
+                                     % (num_epochs, batch_size, learning_rate))
 
             if self.radioButton_keras.isChecked():
                 self.model.train_batch(self.train_params, self.mnist_train)
@@ -344,71 +368,95 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
                     elif self.radioButton_pytorch.isChecked():
                         # avg_cost, avg_accu = self.model.train_batch(self.train_params, self.mnist_train)
                         pass
+
                     print('\t\tEpoch:', '%04d/%04d' % (epoch + 1, num_epochs),
                           'cost =', '{:.9f}'.format(avg_cost))
-                    self.textEdit_training.append('Epoch #%d\n' % (epoch + 1) + 'cost={:.3f}'.format(avg_cost))
 
             print('\nTraining finished.')
             self.textEdit_log.append("Training finished.")
 
+            self.pushButton_saveModel.setEnabled(True)
+            self.pushButton_evaluation.setEnabled(True)
+            self.pushButton_prediction.setEnabled(True)
+
+        else:
+            print('\nModel is not built!')
+
+    def btn_SaveModel_clicked(self):
+        if self.model_built:
             # save model
-            # self.model.save_model(self.model_params.train_dir)
-            # print('\nModel saved to', self.model_params.train_dir)
-            # self.textEdit_log.append('Model saved to' + self.model_params.train_dir)
+            if self.radioButton_tensorflow.isChecked():
+                self.model.save_model(self.model_params.init_model_dir)
+                print('\nModel saved to', self.model_params.init_model_dir)
+                self.textEdit_log.append('Model saved to' + self.model_params.init_model_dir)
         else:
             print('\nModel is not built!')
 
     def btn_LoadModel_clicked(self):
         # build a model
         if self.btn_BuildModel_clicked():
-            self.model.load_model(self.model_params.train_dir)
+            self.model.load_model(self.train_params.train_dir)
             self.model_built = True
-            print('\nModel restored from', self.model_params.train_dir)
+            print('\nModel restored from', self.train_params.train_dir)
         else:
             print('\nNo model restored.')
 
     def btn_Evaluation_clicked(self):
-        # restore model
         if self.model_built:
             # load data
             self.loadData()
+
             # Test model and check accuracy
             print('\nEvaluating model with test data set...')
             self.textEdit_log.append('Evaluating model with test data set...')
             print('\tAccuracy:', self.model.evaluate(self.mnist_test))
-            # self.textEdit_log.append('Accuracy:' + self.model.evaluate(self.mnist_test))
+            self.textEdit_log.append('Accuracy: %0.4f' % self.model.evaluate(self.mnist_test))
         else:
-            print('\nNo model is trained or restored!')
+            print('\nNo model is trained or loaded!')
+
+    def btn_LoadImage_clicked(self):
+        # Load test image
+        img_fn = QFileDialog.getOpenFileName(self, 'Open file')[0]
+        pixmap = QPixmap(img_fn)
+        self.label_inputImage.setPixmap(pixmap)
+        self.label_inputImage.setScaledContents(True)
+
+        self.test_image = Image.open(img_fn, "r")
+        self.subplot.clear()
+        print('\nTest image: ', img_fn, 'is loaded.')
+
+        return self.test_image
 
     def btn_Prediction_clicked(self):
-        # restore model
         if self.model_built:
-            img_fn = 'test_image.bmp'
-            test_image = Image.open(img_fn, "r")
-            pixmap = QPixmap(img_fn)
-            self.label_inputImage.setPixmap(pixmap)
-            self.label_inputImage.setScaledContents(True)
-
-            score, result = self.model.predict(test_image)
+            # prediction
+            score, result = self.model.predict(self.test_image)
             print("Prediction:", result)
-            # self.textEdit_log.append("Prediction:" + result)
+            self.textEdit_log.append("Prediction: %d" % result)
 
             # show score
-            fig = plt.Figure()
-            self.canvas = FigureCanvas(fig)
-            self.horizontalLayout_plotPrediction.addWidget(self.canvas)
-            subplot = fig.add_subplot(1, 1, 1)
-            subplot.set_xticks(range(10))
-            subplot.set_xlim(-0.5, 9.5)
-            subplot.set_ylim(0, 1)
-            subplot.bar(range(10), score[0], align='center')
-            subplot.tick_params(axis='both', labelsize=8)
-
-            # plt.show()
+            self.subplot.set_xticks(range(10))
+            self.subplot.set_xlim(-0.5, 9.5)
+            self.subplot.set_ylim(0, 1)
+            self.subplot.bar(range(10), score[0], align='center')
             self.canvas.draw()
 
         else:
             print('\nNo model is trained or restored!')
+
+    def btn_TensorBoard_clicked(self):
+        import subprocess
+
+        subprocess.Popen("tensorboard --logdir=%s" % self.train_dir, shell=True)
+
+        print('\nTensorBoard is running: logdir=', self.train_dir)
+        # try:
+        #     tensorboard.communicate(timeout=10)
+        # except subprocess.TimeoutExpired:
+        #     tensorboard.terminate()
+        #     tensorboard.wait()
+
+        # pass
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

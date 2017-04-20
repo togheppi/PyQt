@@ -41,7 +41,7 @@ def load_batch_data(dataset, batch_size):
 # enum parameters
 layer_type = Enum('layer_type', 'FC CNN')
 activate_fn_type = Enum('activate_fn_type', 'No_act Sigmoid tanh ReLU')
-init_fn_type = Enum('init_fn_type', 'Uniform Normal Xavier')
+init_fn_type = Enum('init_fn_type', 'No_init Normal Xavier')
 loss_fn_type = Enum('loss_fn_type', 'Cross_Entropy')
 optimizer_type = Enum('optimizer_type', 'SGD Adam RMSProp')
 
@@ -80,9 +80,7 @@ class TorchModel(torch.nn.Module):
                 self.layer.add_module('FC', fc)
 
                 # Initializer
-                if self.model_params.init_fn[i] == init_fn_type.Uniform.value:
-                    torch.nn.init.uniform(fc.weight)
-                elif self.model_params.init_fn[i] == init_fn_type.Normal.value:
+                if self.model_params.init_fn[i] == init_fn_type.Normal.value:
                     torch.nn.init.normal(fc.weight)
                 elif self.model_params.init_fn[i] == init_fn_type.Xavier.value:
                     torch.nn.init.xavier_uniform(fc.weight)
