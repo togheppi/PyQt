@@ -110,7 +110,9 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         self.pushButton_tensorBoard.clicked.connect(self.btn_TensorBoard_clicked)
         self.pushButton_Exit.clicked.connect(app.quit)
 
-        # self.pushButton_saveModel.setDisabled(True)
+        self.pushButton_saveModel.setDisabled(True)
+        self.pushButton_trainModel.setDisabled(True)
+        self.pushButton_clearModel.setDisabled(True)
 
         self.radioButton_tensorflow.clicked.connect(self.tensorflow_selected)
         self.radioButton_keras.clicked.connect(self.keras_selected)
@@ -207,6 +209,11 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             pass
 
     def btn_ClearModel_clicked(self):
+        # # delete model
+        # del self.model
+        del self.model_params
+        del self.train_params
+
         # reset parameters
         self.model_params = ModelParams()
         # self.model_params.dnn()  # DNN model
@@ -223,7 +230,9 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         print('Clear model.')
         self.textEdit_log.append('Clear model.')
 
-        self.pushButton_TrainModel.setDisabled(True)
+        self.pushButton_addLayer.setEnabled(True)
+        self.pushButton_buildModel.setEnabled(True)
+        self.pushButton_trainModel.setDisabled(True)
         self.pushButton_saveModel.setDisabled(True)
 
     def btn_AddLayer_clicked(self):
@@ -275,6 +284,8 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         self.textEdit_log.append("Hidden layer #%d is added to model name, '%s'."
                                  % (self.model_params.num_layers, self.model_params.name))
 
+        self.pushButton_clearModel.setEnabled(True)
+
     def btn_BuildModel_clicked(self):
         if self.model_built:
             print("\nModel already exists.")
@@ -283,6 +294,16 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             # input / output size
             self.model_params.input_size = self.spinBox_inputSize.value()
             self.model_params.num_classes = self.spinBox_numClasses.value()
+
+            # save model dir
+            if self.radioButton_tensorflow.isChecked():
+                self.model_params.init_model_dir = self.train_dir + 'tf_model/' + self.model_params.name + '/'
+            elif self.radioButton_keras.isChecked():
+                self.model_params.init_model_dir = self.train_dir + 'keras_model/' + self.model_params.name + '/'
+                # pass
+            elif self.radioButton_pytorch.isChecked():
+                # init_model_dir = self.train_dir + 'torch_model/' + self.model_params.name + '/'
+                pass
 
             # initialize a model with respective library
             print("\nBuilding a model...")
@@ -299,24 +320,29 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             # build a model
             if self.model.build():
                 self.model_built = True
+                self.model_params.num_layers = 0
                 print("\nModel built.")
                 self.textEdit_log.append("Model built.")
 
+                if self.radioButton_keras.isChecked():
+                    modelinfo = QLabel()
+                    self.verticalLayout_modelViewer.addWidget(modelinfo)
+
+                    img_fn = self.model_params.init_model_dir + self.model_params.name + '.png'
+                    pixmap = QPixmap(img_fn)
+                    modelinfo.setPixmap(pixmap)
+                    modelinfo.setScaledContents(True)
+
+
+                self.pushButton_buildModel.setDisabled(True)
+                self.pushButton_addLayer.setDisabled(True)
                 self.pushButton_trainModel.setEnabled(True)
-                self.pushButton_clearModel.setEnabled(True)
+                self.pushButton_saveModel.setEnabled(True)
             else:
                 print("\nFailed to build a model!")
                 return False
 
-            # save model dir
-            if self.radioButton_tensorflow.isChecked():
-                self.model_params.init_model_dir = self.train_dir + 'tf_model/' + self.model_params.name + '/'
-            elif self.radioButton_keras.isChecked():
-                self.model_params.init_model_dir = self.train_dir + 'keras_model/' + self.model_params.name + '/'
-                # pass
-            elif self.radioButton_pytorch.isChecked():
-                # init_model_dir = self.train_dir + 'torch_model/' + self.model_params.name + '/'
-                pass
+
 
         return True
 
@@ -450,13 +476,7 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         subprocess.Popen("tensorboard --logdir=%s" % self.train_dir, shell=True)
 
         print('\nTensorBoard is running: logdir=', self.train_dir)
-        # try:
-        #     tensorboard.communicate(timeout=10)
-        # except subprocess.TimeoutExpired:
-        #     tensorboard.terminate()
-        #     tensorboard.wait()
 
-        # pass
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

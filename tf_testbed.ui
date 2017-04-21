@@ -475,35 +475,6 @@
       <string>Add layer</string>
      </property>
     </widget>
-    <widget class="QWidget" name="verticalLayoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>470</x>
-       <y>30</y>
-       <width>221</width>
-       <height>411</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_modelViewer">
-      <item>
-       <widget class="QScrollArea" name="scrollArea_modelViewer">
-        <property name="widgetResizable">
-         <bool>true</bool>
-        </property>
-        <widget class="QWidget" name="scrollAreaWidgetContents">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>217</width>
-           <height>407</height>
-          </rect>
-         </property>
-        </widget>
-       </widget>
-      </item>
-     </layout>
-    </widget>
     <widget class="QPushButton" name="pushButton_buildModel">
      <property name="geometry">
       <rect>
@@ -529,6 +500,40 @@
      <property name="text">
       <string>Clear model</string>
      </property>
+    </widget>
+    <widget class="QScrollArea" name="scrollArea_modelViewer">
+     <property name="geometry">
+      <rect>
+       <x>470</x>
+       <y>30</y>
+       <width>219</width>
+       <height>409</height>
+      </rect>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>217</width>
+        <height>407</height>
+       </rect>
+      </property>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>221</width>
+         <height>411</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_modelViewer"/>
+      </widget>
+     </widget>
     </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_training">

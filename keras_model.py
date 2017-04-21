@@ -199,7 +199,17 @@ class KerasModel:
 
         print("\t\tAdding FC layer...")
 
+        # model info
         self.model.summary()
+
+        from IPython.display import Image, display, SVG
+        from keras.utils.vis_utils import model_to_dot
+        from keras.utils.vis_utils import plot_model
+        import os
+        os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
+
+        os.makedirs('./' + self.model_params.init_model_dir)
+        plot_model(self.model, to_file=self.model_params.init_model_dir + self.model_params.name + '.png', show_shapes=True)
 
         return True
 
