@@ -110,9 +110,11 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         self.pushButton_tensorBoard.clicked.connect(self.btn_TensorBoard_clicked)
         self.pushButton_Exit.clicked.connect(app.quit)
 
+        self.pushButton_buildModel.setDisabled(True)
         self.pushButton_saveModel.setDisabled(True)
         self.pushButton_trainModel.setDisabled(True)
         self.pushButton_clearModel.setDisabled(True)
+        self.pushButton_prediction.setDisabled(True)
 
         self.radioButton_tensorflow.clicked.connect(self.tensorflow_selected)
         self.radioButton_keras.clicked.connect(self.keras_selected)
@@ -231,7 +233,7 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         self.textEdit_log.append('Clear model.')
 
         self.pushButton_addLayer.setEnabled(True)
-        self.pushButton_buildModel.setEnabled(True)
+        # self.pushButton_buildModel.setEnabled(True)
         self.pushButton_trainModel.setDisabled(True)
         self.pushButton_saveModel.setDisabled(True)
 
@@ -284,6 +286,7 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         self.textEdit_log.append("Hidden layer #%d is added to model name, '%s'."
                                  % (self.model_params.num_layers, self.model_params.name))
 
+        self.pushButton_buildModel.setEnabled(True)
         self.pushButton_clearModel.setEnabled(True)
 
     def btn_BuildModel_clicked(self):
@@ -325,14 +328,16 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
                 self.textEdit_log.append("Model built.")
 
                 if self.radioButton_keras.isChecked():
-                    modelinfo = QLabel()
-                    self.verticalLayout_modelViewer.addWidget(modelinfo)
-
                     img_fn = self.model_params.init_model_dir + self.model_params.name + '.png'
                     pixmap = QPixmap(img_fn)
-                    modelinfo.setPixmap(pixmap)
-                    modelinfo.setScaledContents(True)
+                    self.label_modelViewer = QLabel()
 
+                    width = self.scrollArea_modelViewer.width()
+                    self.label_modelViewer.setPixmap(pixmap.scaledToWidth(width, mode=Qt.SmoothTransformation))
+                    self.scrollArea_modelViewer.setWidget(self.label_modelViewer)
+
+                    self.scrollArea_modelViewer.setMinimumWidth(
+                        width + self.scrollArea_modelViewer.verticalScrollBar().sizeHint().width())
 
                 self.pushButton_buildModel.setDisabled(True)
                 self.pushButton_addLayer.setDisabled(True)
@@ -450,6 +455,8 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         self.test_image = Image.open(img_fn, "r")
         self.subplot.clear()
         print('\nTest image: ', img_fn, 'is loaded.')
+
+        self.pushButton_prediction.setEnabled(True)
 
         return self.test_image
 

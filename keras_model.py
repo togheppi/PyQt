@@ -1,3 +1,4 @@
+import keras
 from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
@@ -74,12 +75,13 @@ class KerasModel:
     def build(self):
 
         num_layers = self.model_params.num_layers
-        self.model = Sequential()
+        self.model = Sequential(name=self.model_params.name)
         for i in range(num_layers):
             # Fully-connected Layer
-            if self.model_params.layer_type[i] == layer_type.FC.value:
-                print("Hidden layer #%d: " % (i + 1))
+            layer_name = 'Hidden%d' % (i + 1)
+            print(layer_name)
 
+            if self.model_params.layer_type[i] == layer_type.FC.value:
                 # Initializer
                 if self.model_params.init_fn[i] == init_fn_type.No_init.value:
                     init_fn = initializers.random_normal(stddev=1.0)
@@ -95,24 +97,27 @@ class KerasModel:
                     prev_num_neurons = self.model_params.input_size
                     self.model.add(Dense(units=num_neurons, input_dim=prev_num_neurons,
                                          kernel_initializer=init_fn,
-                                         use_bias=True))
+                                         use_bias=True,
+                                         name=layer_name + '_Dense'))
                 elif self.model_params.layer_type[i - 1] == layer_type.FC.value:
                     self.model.add(Dense(units=num_neurons,
                                          kernel_initializer=init_fn,
-                                         use_bias=True))
+                                         use_bias=True,
+                                         name=layer_name + '_Dense'))
                 elif self.model_params.layer_type[i - 1] == layer_type.CNN.value:
-                    self.model.add(Flatten())
+                    self.model.add(Flatten(name=layer_name + '_Flatten'))
                     self.model.add(Dense(units=num_neurons,
                                          kernel_initializer=init_fn,
-                                         use_bias=True))
+                                         use_bias=True,
+                                         name=layer_name + '_Dense'))
 
                 # Activation function
                 if self.model_params.activate_fn[i] == activate_fn_type.Sigmoid.value:
-                    self.model.add(Activation('sigmoid'))
+                    self.model.add(Activation('sigmoid', name=layer_name + '_Act'))
                 elif self.model_params.activate_fn[i] == activate_fn_type.tanh.value:
-                    self.model.add(Activation('tanh'))
+                    self.model.add(Activation('tanh', name=layer_name + '_Act'))
                 elif self.model_params.activate_fn[i] == activate_fn_type.ReLU.value:
-                    self.model.add(Activation('relu'))
+                    self.model.add(Activation('relu', name=layer_name + '_Act'))
                 else:
                     pass
 
@@ -121,7 +126,6 @@ class KerasModel:
 
             # Convolutional Layer
             elif self.model_params.layer_type[i] == layer_type.CNN.value:
-                print("Hidden layer #%d:" % (i+1))
                 # Initializer
                 if self.model_params.init_fn[i] == init_fn_type.No_init.value:
                     init_fn = initializers.random_normal(stddev=1.0)
@@ -143,29 +147,30 @@ class KerasModel:
                                           strides=(s_size, s_size),
                                           padding="same",
                                           kernel_initializer=init_fn,
-                                          use_bias=True))
+                                          use_bias=True,
+                                          name=layer_name + '_Conv2D'))
                 else:
                     self.model.add(Conv2D(filters=num_neurons,
                                           kernel_size=(k_size, k_size),
                                           strides=(s_size, s_size),
                                           padding="same",
                                           kernel_initializer=init_fn,
-                                          use_bias=True))
+                                          use_bias=True,
+                                          name=layer_name + '_Conv2D'))
 
                 # Activation function
                 if self.model_params.activate_fn[i] == activate_fn_type.Sigmoid.value:
-                    self.model.add(Activation('sigmoid'))
+                    self.model.add(Activation('sigmoid', name=layer_name + '_Act'))
                 elif self.model_params.activate_fn[i] == activate_fn_type.tanh.value:
-                    self.model.add(Activation('tanh'))
+                    self.model.add(Activation('tanh', name=layer_name + '_Act'))
                 elif self.model_params.activate_fn[i] == activate_fn_type.ReLU.value:
-                    self.model.add(Activation('relu'))
+                    self.model.add(Activation('relu', name=layer_name + '_Act'))
                 else:
                     pass
 
                 print("\tAdding Conv2D layer...")
-                print("\t\tKernel size = %dx%d, Stride = (%d, %d)" %(k_size, k_size, s_size, s_size))
+                print("\t\tKernel size = %dx%d, Stride = (%d, %d)" % (k_size, k_size, s_size, s_size))
                 # print("\t\tInput:", self.input.size(), "-> Output:", out.size())
-                print(self.model.layers[i].output_shape)
 
                 # Pooling Layer
                 p_size = self.model_params.pool_size[i]
@@ -174,7 +179,8 @@ class KerasModel:
                 if self.model_params.use_pooling[i]:
                     self.model.add(MaxPooling2D(pool_size=(p_size, p_size),
                                                 strides=(pool_s_size, pool_s_size),
-                                                padding="same"))
+                                                padding="same",
+                                                name=layer_name + '_MaxPool'))
 
                     print("\tAdding MaxPooling layer...")
                     print("\t\tKernel size = %dx%d, Stride = (%d, %d)" %(p_size, p_size, pool_s_size, pool_s_size))
@@ -182,7 +188,7 @@ class KerasModel:
             # Dropout
             keep_prob = self.model_params.keep_prob[i]
             if self.model_params.use_dropout[i]:
-                self.model.add(Dropout(rate=1-keep_prob))
+                self.model.add(Dropout(rate=1-keep_prob, name=layer_name + '_DropOut'))
 
                 print("\tAdding Dropout layer...")
                 print("\t\tkeep_prob = %0.1f" % keep_prob)
@@ -190,30 +196,39 @@ class KerasModel:
         # Output (no activation) Layer
         print("Output layer: ")
         if self.model_params.layer_type[num_layers-1] == layer_type.CNN.value:
-            self.model.add(Flatten())
+            self.model.add(Flatten(name='Output_Flatten'))
 
         self.model.add(Dense(units=self.model_params.num_classes,
-                             use_bias=True))
+                             use_bias=True,
+                             name='Output_Dense'))
 
-        self.model.add(Activation('softmax'))
+        self.model.add(Activation('softmax', name='Output_Act'))
 
         print("\t\tAdding FC layer...")
 
         # model info
         self.model.summary()
 
-        from IPython.display import Image, display, SVG
-        from keras.utils.vis_utils import model_to_dot
+        # model viewer
         from keras.utils.vis_utils import plot_model
         import os
         os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
 
-        os.makedirs('./' + self.model_params.init_model_dir)
+        if not os.path.exists(self.model_params.init_model_dir):
+            os.makedirs('./' + self.model_params.init_model_dir)
+
+        # model = self.model.model
+        # self.model.model.layers[0].name = 'Input'   # change name of input layer
         plot_model(self.model, to_file=self.model_params.init_model_dir + self.model_params.name + '.png', show_shapes=True)
 
         return True
 
-    def set_optimizer(self, lossFn, optimizer, learning_rate):
+    def set_optimizer(self, train_params):
+        self.train_params = train_params
+        lossFn = self.train_params.loss_fn
+        optimizer = self.train_params.optimizer
+        learning_rate = self.train_params.learning_rate
+
         # define cost/loss & optimizer
         if lossFn == loss_fn_type.Cross_Entropy.value:
             print("\nLoss function: Cross_Entropy.")
@@ -266,6 +281,9 @@ class KerasModel:
         if self.model_params.layer_type[0] == layer_type.FC.value:
             dataset.images = dataset.images.reshape(dataset.images.shape[0], img_rows*img_cols)
 
+        tensorboard = keras.callbacks.TensorBoard(log_dir=self.train_params.train_dir, histogram_freq=1,
+                                                  write_graph=True, write_images=False)
+
         self.model.fit(dataset.images, dataset.labels,
                        batch_size=self.train_params.batch_size, epochs=self.train_params.training_epochs,
-                       verbose=1, validation_data=None)
+                       verbose=1, validation_data=None, callbacks=[tensorboard])

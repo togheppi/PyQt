@@ -23,12 +23,19 @@ class TFModel:
         # TF session
         self.sess = tf.Session()
         self.model_params = model_params
+        self.merge_flag = False
 
-    def merge_summaries(self, log_dir):
+    def __del__(self):
+        self.sess.close()
+        print('session closed')
+
+    def merge_summaries(self, log_dir, merge_flag=False):
         # tensorboard
-        self.merged_summary = tf.summary.merge_all()
+        if not merge_flag:
+            self.merged_summary = tf.summary.merge_all()
+            self.merge_flag = True
+
         self.writer = tf.summary.FileWriter(log_dir)
-        # self.writer.add_graph(self.sess.graph)  # Show the graph
         print('\nTraining log saved to', log_dir)
 
     def init_variables(self):
@@ -189,9 +196,6 @@ class TFModel:
                     self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
                                                logits=self.logits, labels=self.Y))
 
-                # Summaries
-                tf.summary.scalar('Cost', self.cost)
-
             with tf.name_scope('Optimizer'):
                 if optimizer == optimizer_type.SGD.value:
                     print("\nSGD optimizer is selected.")
@@ -212,68 +216,16 @@ class TFModel:
                 correct_prediction = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.Y, 1))
                 self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-                # Summaries
-                tf.summary.scalar('Accuracy', self.accuracy)
+
+            # Summaries
+            tf.summary.scalar('Cost', self.cost)
+            tf.summary.scalar('Accuracy', self.accuracy)
 
             # merge summaries
-            self.merge_summaries(self.train_params.train_dir)
+            self.merge_summaries(self.train_params.train_dir, self.merge_flag)
 
-            # initialize variables
-            self.init_variables()
-
-
-    # def train(self, train_data_set, train_params, training=True):
-    #     with tf.name_scope(self.model_params.name):
-    #         self.train_params = train_params
-    #
-    #         # optimizer
-    #         self.set_optimizer(self.train_params.loss_fn, self.train_params.optimizer, self.train_params.learning_rate)
-    #
-    #         # Summaries
-    #         tf.summary.scalar('Training accuracy', self.accuracy)
-    #
-    #         # tensorboard --logdir=./logs/xor_logs
-    #         self.merged_summary = tf.summary.merge_all()
-    #         self.writer = tf.summary.FileWriter("./Train_logs/" + self.model_params.name)
-    #         self.writer.add_graph(self.sess.graph)  # Show the graph
-    #
-    #         # initialize variables
-    #         self.sess.run(tf.global_variables_initializer())
-    #         print("\nGlobal variable initialized.")
-    #
-    #         # train my model
-    #         print('\nTraining started...')
-    #         num_epochs = self.train_params.training_epochs
-    #         batch_size = self.train_params.batch_size
-    #         learning_rate = self.train_params.learning_rate
-    #         print('\t# of Epochs: %d, Batch size: %d, Learning rate: %f'
-    #               % (num_epochs, batch_size, learning_rate))
-    #         for epoch in range(num_epochs):
-    #             self.avg_cost = 0
-    #             self.avg_accu = 0
-    #             total_batch = int(train_data_set.num_examples / batch_size)
-    #
-    #             for i in range(total_batch):
-    #                 batch_xs, batch_ys = train_data_set.next_batch(batch_size)
-    #                 c, _ = self.sess.run([self.cost, self.optimizer],
-    #                                      feed_dict={self.X: batch_xs, self.Y: batch_ys, self.training: training})
-    #                 accu = self.sess.run(self.accuracy,
-    #                                      feed_dict={self.X: batch_xs, self.Y: batch_ys, self.training: training})
-    #
-    #                 self.avg_cost += c / total_batch
-    #                 self.avg_accu += accu / total_batch
-    #
-    #             print('\t\tEpoch:', '%04d/%04d' % (epoch + 1, num_epochs),
-    #                   'cost =', '{:.9f}'.format(self.avg_cost))
-    #
-    #         print('\nTraining finished.')
-    #
-    #         # save session
-    #         self.saver = tf.train.Saver()
-    #         self.restore_dir = self.model_params.train_dir + self.model_params.name
-    #         tf.gfile.MakeDirs(self.restore_dir)
-    #         self.saver.save(self.sess, self.restore_dir + "model")
-    #         print('\nModel saved to', self.restore_dir)
+        # initialize variables
+        self.init_variables()
 
     def train_batch(self, train_params, dataset, prev_global_step, training=True):
         self.train_params = train_params

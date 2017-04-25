@@ -219,7 +219,12 @@ class TorchModel(torch.nn.Module):
         out = self.logits(out)
         return out
 
-    def set_optimizer(self, lossFn, optimizer, learning_rate):
+    def set_optimizer(self, train_params):
+        self.train_params = train_params
+        lossFn = self.train_params.loss_fn
+        optimizer = self.train_params.optimizer
+        learning_rate = self.train_params.learning_rate
+
         # define cost/loss & optimizer
         if lossFn == loss_fn_type.Cross_Entropy.value:
             print("\nLoss function: Cross_Entropy.")
