@@ -8,6 +8,7 @@ from keras import optimizers
 from keras.utils import np_utils
 import numpy as np
 from enum import Enum
+import os
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -199,6 +200,7 @@ class KerasModel:
             self.model.add(Flatten(name='Output_Flatten'))
 
         self.model.add(Dense(units=self.model_params.num_classes,
+                             kernel_initializer=init_fn,
                              use_bias=True,
                              name='Output_Dense'))
 
@@ -258,9 +260,11 @@ class KerasModel:
 
         image = 1.0 - image
 
-        if self.model_params.layer_type[0] == layer_type.FC.value:
+        # if self.model_params.layer_type[0] == layer_type.FC.value:
+        if self.model.layers[0].__class__.__name__ == 'Dense':
             image = image.reshape(1, self.model_params.input_size)
-        elif self.model_params.layer_type[0] == layer_type.CNN.value:
+        # elif self.model_params.layer_type[0] == layer_type.CNN.value:
+        elif self.model.layers[0].__class__.__name__ == 'Conv2D':
             image = image.reshape(1, img_rows, img_cols, 1)
 
         score = self.model.predict(image, batch_size=1, verbose=1)
@@ -269,7 +273,8 @@ class KerasModel:
         return score, prediction
 
     def evaluate(self, test_data_set):
-        if self.model_params.layer_type[0] == layer_type.FC.value:
+        # if self.model_params.layer_type[0] == layer_type.FC.value:
+        if self.model.layers[0].__class__.__name__ == 'Dense':
             test_data_set.images = test_data_set.images.reshape(test_data_set.images.shape[0], img_rows*img_cols)
         self.score = self.model.evaluate(test_data_set.images, test_data_set.labels, verbose=0)
         self.accuracy = self.score[1]
@@ -278,7 +283,8 @@ class KerasModel:
 
     def train_batch(self, train_params, dataset):
         self.train_params = train_params
-        if self.model_params.layer_type[0] == layer_type.FC.value:
+        # if self.model_params.layer_type[0] == layer_type.FC.value:
+        if self.model.layers[0].__class__.__name__ == 'Dense':
             dataset.images = dataset.images.reshape(dataset.images.shape[0], img_rows*img_cols)
 
         tensorboard = keras.callbacks.TensorBoard(log_dir=self.train_params.train_dir, histogram_freq=1,
@@ -287,3 +293,18 @@ class KerasModel:
         self.model.fit(dataset.images, dataset.labels,
                        batch_size=self.train_params.batch_size, epochs=self.train_params.training_epochs,
                        verbose=1, validation_data=None, callbacks=[tensorboard])
+
+    def load_model(self, restore_dir):
+        from keras.models import load_model
+        # restore saved model
+        fname = restore_dir + self.model_params.name + '.h5'
+        self.model = load_model(fname)
+
+
+    def save_model(self, model_dir):
+        # save model
+        if not os.path.exists(model_dir):
+            os.mkdir(model_dir)
+        self.model.save(model_dir + self.model_params.name + '.h5')
+        # self.model.save('model.h5')
+

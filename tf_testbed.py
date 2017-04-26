@@ -5,6 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import ui_tf_testbed
 from PIL import Image
+import pickle
 
 # import torch_model
 # import tf_model
@@ -120,14 +121,6 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         self.radioButton_keras.clicked.connect(self.keras_selected)
         self.radioButton_pytorch.clicked.connect(self.pytorch_selected)
 
-        # load library module
-        if self.radioButton_tensorflow.isChecked():
-            self.tensorflow_selected()
-        elif self.radioButton_keras.isChecked():
-            self.keras_selected()
-        elif self.radioButton_pytorch.isChecked():
-            self.pytorch_selected()
-
         # initial parameters
         self.model_params = ModelParams()
         # self.model_params.dnn()  # DNN model
@@ -138,10 +131,18 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         self.model_built = False
         self.model_trained = False
 
-        self.comboBox_actFn.setCurrentIndex(3)      # ReLU
-        self.comboBox_initFn.setCurrentIndex(0)     # No initializer
-        self.comboBox_lossFn.setCurrentIndex(0)     # Cross-Entropy
+        self.comboBox_actFn.setCurrentIndex(3)  # ReLU
+        self.comboBox_initFn.setCurrentIndex(0)  # No initializer
+        self.comboBox_lossFn.setCurrentIndex(0)  # Cross-Entropy
         self.comboBox_optimizer.setCurrentIndex(1)  # Adam optimizer
+
+        # load library module
+        if self.radioButton_tensorflow.isChecked():
+            self.tensorflow_selected()
+        elif self.radioButton_keras.isChecked():
+            self.keras_selected()
+        elif self.radioButton_pytorch.isChecked():
+            self.pytorch_selected()
 
         # show score
         self.fig = plt.Figure()
@@ -167,6 +168,9 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         globals()['tf_model'] = __import__('tf_model')
         print("TensorFlow library is selected.")
 
+        if not os.path.exists(self.train_dir + 'tf_model'):
+            os.mkdir(self.train_dir + 'tf_model')
+
     def keras_selected(self):
         if 'torch_model' in sys.modules:
             del sys.modules['torch_model']
@@ -180,6 +184,9 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         globals()['keras_model'] = __import__('keras_model')
         print("Keras (TF backend) library is selected.")
 
+        if not os.path.exists(self.train_dir + 'keras_model'):
+            os.mkdir(self.train_dir + 'keras_model')
+
     def pytorch_selected(self):
         if 'tf_model' in sys.modules:
             del sys.modules['tf_model']
@@ -188,8 +195,10 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             del sys.modules['tf']
             print('tf deleted')
         globals()['torch_model'] = __import__('torch_model')
-
         print("PyTorch library is selected.")
+
+        if not os.path.exists(self.train_dir + 'torch_model'):
+            os.mkdir(self.train_dir + 'torch_model')
 
     def loadData(self):
         # load data
@@ -209,6 +218,23 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             # self.train_params.num_batch_train = len(self.mnist_train) // self.train_params.batch_size
             # self.train_params.num_batch_test = len(self.mnist_test) // self.train_params.batch_size
             pass
+
+    def save_model_params(self, model_params):
+        if not os.path.exists(model_params.init_model_dir):
+            os.mkdir(model_params.init_model_dir)
+
+        model_params_fn = model_params.init_model_dir + 'model_params.dat'
+        f = open(model_params_fn, "wb")
+        pickle.dump(model_params, f, pickle.HIGHEST_PROTOCOL)
+        f.close()
+
+    def load_model_params(self, model_dir):
+        model_params_fn = model_dir + 'model_params.dat'
+        f = open(model_params_fn, "rb")
+        model_params = pickle.load(f)
+        f.close()
+
+        return model_params
 
     def btn_ClearModel_clicked(self):
         # # delete model
@@ -308,6 +334,9 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
                 # init_model_dir = self.train_dir + 'torch_model/' + self.model_params.name + '/'
                 pass
 
+            # save model params to file
+            self.save_model_params(self.model_params)
+
             # initialize a model with respective library
             print("\nBuilding a model...")
             self.textEdit_log.append("Building a model...")
@@ -330,11 +359,11 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
                 if self.radioButton_keras.isChecked():
                     img_fn = self.model_params.init_model_dir + self.model_params.name + '.png'
                     pixmap = QPixmap(img_fn)
-                    self.label_modelViewer = QLabel()
+                    label_modelViewer = QLabel()
 
                     width = self.scrollArea_modelViewer.width()
-                    self.label_modelViewer.setPixmap(pixmap.scaledToWidth(width, mode=Qt.SmoothTransformation))
-                    self.scrollArea_modelViewer.setWidget(self.label_modelViewer)
+                    label_modelViewer.setPixmap(pixmap.scaledToWidth(width, mode=Qt.SmoothTransformation))
+                    self.scrollArea_modelViewer.setWidget(label_modelViewer)
 
                     self.scrollArea_modelViewer.setMinimumWidth(
                         width + self.scrollArea_modelViewer.verticalScrollBar().sizeHint().width())
@@ -346,8 +375,6 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             else:
                 print("\nFailed to build a model!")
                 return False
-
-
 
         return True
 
@@ -401,7 +428,8 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
                         pass
 
                     print('\t\tEpoch:', '%04d/%04d' % (epoch + 1, num_epochs),
-                          'cost =', '{:.9f}'.format(avg_cost))
+                          'cost =', '{:.9f}'.format(avg_cost),
+                          'accu =', '{:.4f}'.format(avg_accu))
 
             print('\nTraining finished.')
             self.textEdit_log.append("Training finished.")
@@ -416,21 +444,70 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
     def btn_SaveModel_clicked(self):
         if self.model_built:
             # save model
-            if self.radioButton_tensorflow.isChecked():
-                self.model.save_model(self.model_params.init_model_dir)
-                print('\nModel saved to', self.model_params.init_model_dir)
-                self.textEdit_log.append('Model saved to' + self.model_params.init_model_dir)
+            # if self.radioButton_tensorflow.isChecked():
+            self.model.save_model(self.model_params.init_model_dir)
+            print('\nModel saved to', self.model_params.init_model_dir)
+            self.textEdit_log.append('Model saved to ' + self.model_params.init_model_dir)
         else:
             print('\nModel is not built!')
 
     def btn_LoadModel_clicked(self):
-        # build a model
-        if self.btn_BuildModel_clicked():
-            self.model.load_model(self.train_params.train_dir)
+        # deletes the existing model
+        if self.model_built:
+            del self.model
+            self.model_built = False
+
+        # model name to load
+        model_name = self.lineEdit_modelName.text()
+
+
+        if self.radioButton_tensorflow.isChecked():
+            # load model dir
+            self.model_params.init_model_dir = self.train_dir + 'tf_model/' + model_name + '/'
+
+            # rebuild and load model with saved model params
+            self.model_params = self.load_model_params(self.model_params.init_model_dir)
+            if self.btn_BuildModel_clicked():
+                self.model.load_model(self.model_params.init_model_dir)
+                self.model_built = True
+                print('\nModel restored from', self.model_params.init_model_dir)
+            else:
+                print('\nNo model restored.')
+
+        elif self.radioButton_keras.isChecked():
+            # load model dir
+            self.model_params.init_model_dir = self.train_dir + 'keras_model/' + model_name + '/'
+
+            # instantiate new model with saved model params
+            self.model_params = self.load_model_params(self.model_params.init_model_dir)
+            self.model = keras_model.KerasModel(self.model_params)
+
+            # load model
+            self.model.load_model(self.model_params.init_model_dir)
             self.model_built = True
-            print('\nModel restored from', self.train_params.train_dir)
-        else:
-            print('\nNo model restored.')
+            print('\nModel restored from', self.model_params.init_model_dir)
+            self.textEdit_log.append('Model restored from ' + self.model_params.init_model_dir)
+
+            # show load model info
+            img_fn = self.model_params.init_model_dir + self.model_params.name + '.png'
+            pixmap = QPixmap(img_fn)
+            label_modelViewer = QLabel()
+
+            width = self.scrollArea_modelViewer.width()
+            label_modelViewer.setPixmap(pixmap.scaledToWidth(width, mode=Qt.SmoothTransformation))
+            self.scrollArea_modelViewer.setWidget(label_modelViewer)
+
+            self.scrollArea_modelViewer.setMinimumWidth(
+                width + self.scrollArea_modelViewer.verticalScrollBar().sizeHint().width())
+
+        elif self.radioButton_pytorch.isChecked():
+            # init_model_dir = self.train_dir + 'torch_model/' + self.model_params.name + '/'
+            pass
+
+        self.pushButton_buildModel.setDisabled(True)
+        self.pushButton_addLayer.setDisabled(True)
+        self.pushButton_trainModel.setEnabled(True)
+        self.pushButton_saveModel.setEnabled(True)
 
     def btn_Evaluation_clicked(self):
         if self.model_built:
@@ -482,7 +559,7 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
 
         subprocess.Popen("tensorboard --logdir=%s" % self.train_dir, shell=True)
 
-        print('\nTensorBoard is running: logdir=', self.train_dir)
+        print('\nTensorBoard is running: logdir =', self.train_dir)
 
 
 if __name__ == "__main__":
