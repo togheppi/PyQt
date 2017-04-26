@@ -179,7 +179,6 @@ class TFModel:
                 tf.summary.histogram('Activation', self.logits)
 
 
-
         return True
 
     def set_optimizer(self, train_params):

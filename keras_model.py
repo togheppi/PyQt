@@ -214,13 +214,13 @@ class KerasModel:
         # model viewer
         from keras.utils.vis_utils import plot_model
         import os
-        os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
+        # os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
 
         if not os.path.exists(self.model_params.init_model_dir):
             os.makedirs('./' + self.model_params.init_model_dir)
 
-        # model = self.model.model
-        # self.model.model.layers[0].name = 'Input'   # change name of input layer
+        # print(self.model.get_input_at())
+        # model.layers[0].name = 'Input'   # change name of input layer
         plot_model(self.model, to_file=self.model_params.init_model_dir + self.model_params.name + '.png', show_shapes=True)
 
         return True
@@ -298,7 +298,12 @@ class KerasModel:
         from keras.models import load_model
         # restore saved model
         fname = restore_dir + self.model_params.name + '.h5'
-        self.model = load_model(fname)
+        if os.path.exists(fname):
+            self.model = load_model(fname)
+        else:
+            return False
+
+        return True
 
 
     def save_model(self, model_dir):
@@ -306,5 +311,4 @@ class KerasModel:
         if not os.path.exists(model_dir):
             os.mkdir(model_dir)
         self.model.save(model_dir + self.model_params.name + '.h5')
-        # self.model.save('model.h5')
 

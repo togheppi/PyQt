@@ -73,7 +73,14 @@ class ModelParams:
         self.use_dropout = [True, True, True]
         self.keep_prob = [0.7, 0.7, 0.7]
 
+    def save(self):
+        if not os.path.exists(self.init_model_dir):
+            os.mkdir(self.init_model_dir)
 
+        model_params_fn = self.init_model_dir + 'model_params.dat'
+        f = open(model_params_fn, "wb")
+        pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+        f.close()
 
 class TrainParams:
     def __init__(self):
@@ -171,6 +178,11 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         if not os.path.exists(self.train_dir + 'tf_model'):
             os.mkdir(self.train_dir + 'tf_model')
 
+        # delete model
+        if self.model_built:
+            del self.model
+            self.model_built = False
+
     def keras_selected(self):
         if 'torch_model' in sys.modules:
             del sys.modules['torch_model']
@@ -187,6 +199,11 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         if not os.path.exists(self.train_dir + 'keras_model'):
             os.mkdir(self.train_dir + 'keras_model')
 
+        # delete model
+        if self.model_built:
+            del self.model
+            self.model_built = False
+
     def pytorch_selected(self):
         if 'tf_model' in sys.modules:
             del sys.modules['tf_model']
@@ -199,6 +216,11 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
 
         if not os.path.exists(self.train_dir + 'torch_model'):
             os.mkdir(self.train_dir + 'torch_model')
+
+        # delete model
+        if self.model_built:
+            del self.model
+            self.model_built = False
 
     def loadData(self):
         # load data
@@ -219,28 +241,23 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             # self.train_params.num_batch_test = len(self.mnist_test) // self.train_params.batch_size
             pass
 
-    def save_model_params(self, model_params):
-        if not os.path.exists(model_params.init_model_dir):
-            os.mkdir(model_params.init_model_dir)
-
-        model_params_fn = model_params.init_model_dir + 'model_params.dat'
-        f = open(model_params_fn, "wb")
-        pickle.dump(model_params, f, pickle.HIGHEST_PROTOCOL)
-        f.close()
-
     def load_model_params(self, model_dir):
         model_params_fn = model_dir + 'model_params.dat'
+        if not os.path.exists(model_params_fn):
+            return False
         f = open(model_params_fn, "rb")
         model_params = pickle.load(f)
         f.close()
-
-        return model_params
+        self.model_params = model_params
+        return True
 
     def btn_ClearModel_clicked(self):
-        # # delete model
-        # del self.model
-        del self.model_params
-        del self.train_params
+        # delete model
+        if self.model_built:
+            del self.model
+            self.model_built = False
+            del self.model_params
+            del self.train_params
 
         # reset parameters
         self.model_params = ModelParams()
@@ -255,11 +272,12 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
         # reset number of layer
         self.lineEdit_numLayers.setText('%d layer(s)' % self.model_params.num_layers)
 
+        self.label_modelViewer.clear()
+
         print('Clear model.')
         self.textEdit_log.append('Clear model.')
 
         self.pushButton_addLayer.setEnabled(True)
-        # self.pushButton_buildModel.setEnabled(True)
         self.pushButton_trainModel.setDisabled(True)
         self.pushButton_saveModel.setDisabled(True)
 
@@ -335,7 +353,7 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
                 pass
 
             # save model params to file
-            self.save_model_params(self.model_params)
+            self.model_params.save()
 
             # initialize a model with respective library
             print("\nBuilding a model...")
@@ -359,14 +377,14 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
                 if self.radioButton_keras.isChecked():
                     img_fn = self.model_params.init_model_dir + self.model_params.name + '.png'
                     pixmap = QPixmap(img_fn)
-                    label_modelViewer = QLabel()
+                    self.label_modelViewer = QLabel()
 
-                    width = self.scrollArea_modelViewer.width()
-                    label_modelViewer.setPixmap(pixmap.scaledToWidth(width, mode=Qt.SmoothTransformation))
-                    self.scrollArea_modelViewer.setWidget(label_modelViewer)
+                    width = self.scrollArea_modelViewer.width() - self.scrollArea_modelViewer.verticalScrollBar().sizeHint().width()
+                    self.label_modelViewer.setPixmap(pixmap.scaledToWidth(width, mode=Qt.SmoothTransformation))
+                    self.scrollArea_modelViewer.setWidget(self.label_modelViewer)
 
-                    self.scrollArea_modelViewer.setMinimumWidth(
-                        width + self.scrollArea_modelViewer.verticalScrollBar().sizeHint().width())
+                    # self.scrollArea_modelViewer.setMinimumWidth(
+                    #     width + )
 
                 self.pushButton_buildModel.setDisabled(True)
                 self.pushButton_addLayer.setDisabled(True)
@@ -466,39 +484,60 @@ class MyWindow(QMainWindow, ui_tf_testbed.Ui_MainWindow):
             self.model_params.init_model_dir = self.train_dir + 'tf_model/' + model_name + '/'
 
             # rebuild and load model with saved model params
-            self.model_params = self.load_model_params(self.model_params.init_model_dir)
-            if self.btn_BuildModel_clicked():
-                self.model.load_model(self.model_params.init_model_dir)
-                self.model_built = True
-                print('\nModel restored from', self.model_params.init_model_dir)
+            if os.path.exists(self.model_params.init_model_dir):
+                if self.load_model_params(self.model_params.init_model_dir):
+                    print('\nModel parameters loaded.')
+                    self.textEdit_log.append('Model parameters loaded.')
+
+                    if self.btn_BuildModel_clicked():
+                        self.model.load_model(self.model_params.init_model_dir)
+                        self.model_built = True
+                        print('\nModel restored from', self.model_params.init_model_dir)
+                        self.textEdit_log.append('Model restored from ' + self.model_params.init_model_dir)
+                    else:
+                        print('\nNo model restored.')
+                        self.textEdit_log.append('No model restored.')
+                else:
+                    print('\nNo model parameters loaded.')
+                    self.textEdit_log.append('No model parameters loaded.')
             else:
-                print('\nNo model restored.')
+                print('\nNo model saved.')
+                self.textEdit_log.append('No model saved.')
 
         elif self.radioButton_keras.isChecked():
             # load model dir
             self.model_params.init_model_dir = self.train_dir + 'keras_model/' + model_name + '/'
 
             # instantiate new model with saved model params
-            self.model_params = self.load_model_params(self.model_params.init_model_dir)
-            self.model = keras_model.KerasModel(self.model_params)
+            if os.path.exists(self.model_params.init_model_dir):
+                if self.load_model_params(self.model_params.init_model_dir):
+                    print('\nModel parameters loaded.')
+                    self.textEdit_log.append('Model parameters loaded.')
 
-            # load model
-            self.model.load_model(self.model_params.init_model_dir)
-            self.model_built = True
-            print('\nModel restored from', self.model_params.init_model_dir)
-            self.textEdit_log.append('Model restored from ' + self.model_params.init_model_dir)
+                    self.model = keras_model.KerasModel(self.model_params)
 
-            # show load model info
-            img_fn = self.model_params.init_model_dir + self.model_params.name + '.png'
-            pixmap = QPixmap(img_fn)
-            label_modelViewer = QLabel()
+                    # load model
+                    if self.model.load_model(self.model_params.init_model_dir):
+                        self.model_built = True
+                        print('\nModel restored from', self.model_params.init_model_dir)
+                        self.textEdit_log.append('Model restored from ' + self.model_params.init_model_dir)
+                    else:
+                        print('\nCannot load .h5 file.')
+                        self.textEdit_log.append('Cannot load .h5 file.')
+                    # show load model info
+                    img_fn = self.model_params.init_model_dir + self.model_params.name + '.png'
+                    pixmap = QPixmap(img_fn)
+                    self.label_modelViewer = QLabel()
 
-            width = self.scrollArea_modelViewer.width()
-            label_modelViewer.setPixmap(pixmap.scaledToWidth(width, mode=Qt.SmoothTransformation))
-            self.scrollArea_modelViewer.setWidget(label_modelViewer)
-
-            self.scrollArea_modelViewer.setMinimumWidth(
-                width + self.scrollArea_modelViewer.verticalScrollBar().sizeHint().width())
+                    width = self.scrollArea_modelViewer.width() - self.scrollArea_modelViewer.verticalScrollBar().sizeHint().width()
+                    self.label_modelViewer.setPixmap(pixmap.scaledToWidth(width, mode=Qt.SmoothTransformation))
+                    self.scrollArea_modelViewer.setWidget(self.label_modelViewer)
+                else:
+                    print('\nNo model parameters loaded.')
+                    self.textEdit_log.append('No model parameters loaded.')
+            else:
+                print('\nNo model saved.')
+                self.textEdit_log.append('No model saved.')
 
         elif self.radioButton_pytorch.isChecked():
             # init_model_dir = self.train_dir + 'torch_model/' + self.model_params.name + '/'
