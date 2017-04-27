@@ -9,6 +9,8 @@ from keras.utils import np_utils
 import numpy as np
 from enum import Enum
 import os
+import my_callback
+
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -287,8 +289,11 @@ class KerasModel:
         if self.model.layers[0].__class__.__name__ == 'Dense':
             dataset.images = dataset.images.reshape(dataset.images.shape[0], img_rows*img_cols)
 
-        tensorboard = keras.callbacks.TensorBoard(log_dir=self.train_params.train_dir, histogram_freq=1,
-                                                  write_graph=True, write_images=False)
+        # tensorboard = keras.callbacks.TensorBoard(log_dir=self.train_params.train_dir, histogram_freq=1,
+        #                                           write_graph=True, write_images=False)
+
+        tensorboard = my_callback.TensorBoard(log_dir=self.train_params.train_dir, histogram_freq=1,
+                                              write_graph=True, write_images=False)
 
         self.model.fit(dataset.images, dataset.labels,
                        batch_size=self.train_params.batch_size, epochs=self.train_params.training_epochs,
@@ -311,4 +316,6 @@ class KerasModel:
         if not os.path.exists(model_dir):
             os.mkdir(model_dir)
         self.model.save(model_dir + self.model_params.name + '.h5')
+
+
 

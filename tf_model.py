@@ -6,7 +6,7 @@ from enum import Enum
 
 
 def load_data(data_path="MNIST_data/", one_hot=True):
-    dataset = input_data.read_data_sets(data_path, one_hot=one_hot)
+    dataset = input_data.read_data_sets(data_path, one_hot=one_hot, validation_size=0)
     return dataset
 
 # enum parameters
